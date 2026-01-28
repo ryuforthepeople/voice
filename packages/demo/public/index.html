@@ -10,7 +10,7 @@
       margin: 0;
       padding: 0;
     }
-    
+
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
@@ -21,18 +21,18 @@
       align-items: center;
       padding: 20px;
     }
-    
+
     h1 {
       margin-bottom: 10px;
       font-weight: 300;
       font-size: 2rem;
     }
-    
+
     .subtitle {
       color: #888;
       margin-bottom: 30px;
     }
-    
+
     .state-indicator {
       display: flex;
       align-items: center;
@@ -42,7 +42,7 @@
       background: rgba(255,255,255,0.1);
       border-radius: 20px;
     }
-    
+
     .state-dot {
       width: 12px;
       height: 12px;
@@ -50,28 +50,28 @@
       background: #666;
       transition: all 0.3s ease;
     }
-    
+
     .state-dot.idle { background: #666; }
     .state-dot.listening { background: #4CAF50; animation: pulse 1.5s infinite; }
     .state-dot.processing { background: #FFC107; animation: pulse 0.5s infinite; }
     .state-dot.speaking { background: #2196F3; animation: pulse 1s infinite; }
     .state-dot.interrupted { background: #f44336; }
-    
+
     @keyframes pulse {
       0%, 100% { transform: scale(1); opacity: 1; }
       50% { transform: scale(1.2); opacity: 0.7; }
     }
-    
+
     .state-text {
       font-size: 0.9rem;
       text-transform: capitalize;
     }
-    
+
     .voice-button-container {
       position: relative;
       margin-bottom: 30px;
     }
-    
+
     .volume-ring {
       position: absolute;
       top: 50%;
@@ -84,11 +84,11 @@
       pointer-events: none;
       transition: border-color 0.1s ease, transform 0.1s ease;
     }
-    
+
     .volume-ring.active {
       border-color: rgba(76, 175, 80, 0.6);
     }
-    
+
     .voice-button {
       width: 120px;
       height: 120px;
@@ -104,26 +104,26 @@
       justify-content: center;
       box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
     }
-    
+
     .voice-button:hover {
       transform: scale(1.05);
       box-shadow: 0 6px 30px rgba(102, 126, 234, 0.6);
     }
-    
+
     .voice-button:active {
       transform: scale(0.95);
     }
-    
+
     .voice-button.active {
       background: linear-gradient(135deg, #f44336 0%, #e91e63 100%);
       box-shadow: 0 4px 20px rgba(244, 67, 54, 0.4);
     }
-    
+
     .voice-button svg {
       width: 40px;
       height: 40px;
     }
-    
+
     .transcript-container {
       width: 100%;
       max-width: 600px;
@@ -133,7 +133,7 @@
       flex: 1;
       overflow-y: auto;
     }
-    
+
     .transcript-title {
       font-size: 0.8rem;
       color: #888;
@@ -141,13 +141,13 @@
       text-transform: uppercase;
       letter-spacing: 1px;
     }
-    
+
     .transcript-messages {
       display: flex;
       flex-direction: column;
       gap: 12px;
     }
-    
+
     .message {
       padding: 10px 14px;
       border-radius: 12px;
@@ -156,35 +156,35 @@
       line-height: 1.4;
       animation: fadeIn 0.3s ease;
     }
-    
+
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
     }
-    
+
     .message.user {
       background: rgba(102, 126, 234, 0.3);
       align-self: flex-end;
       border-bottom-right-radius: 4px;
     }
-    
+
     .message.assistant {
       background: rgba(255, 255, 255, 0.1);
       align-self: flex-start;
       border-bottom-left-radius: 4px;
     }
-    
+
     .message.pending {
       opacity: 0.7;
     }
-    
+
     .message-role {
       font-size: 0.65rem;
       color: #888;
       margin-bottom: 3px;
       text-transform: uppercase;
     }
-    
+
     .connection-status {
       position: fixed;
       bottom: 20px;
@@ -194,11 +194,11 @@
       font-size: 0.8rem;
       background: rgba(0,0,0,0.5);
     }
-    
+
     .connection-status.connected { color: #4CAF50; }
     .connection-status.disconnected { color: #f44336; }
     .connection-status.connecting { color: #FFC107; }
-    
+
     .error-toast {
       position: fixed;
       top: 20px;
@@ -211,7 +211,7 @@
       display: none;
       animation: slideIn 0.3s ease;
     }
-    
+
     @keyframes slideIn {
       from { opacity: 0; transform: translate(-50%, -20px); }
       to { opacity: 1; transform: translate(-50%, 0); }
@@ -222,12 +222,12 @@
   <h1>🎤 Voice Chat</h1>
   <p class="subtitle">Praat met Ryu AI</p>
   <p class="mic-info" id="micInfo" style="font-size: 0.8rem; color: #666; margin-bottom: 20px;">🎤 Geen microfoon geselecteerd</p>
-  
+
   <div class="state-indicator">
     <div class="state-dot" id="stateDot"></div>
     <span class="state-text" id="stateText">Idle</span>
   </div>
-  
+
   <div class="voice-button-container">
     <div class="volume-ring" id="volumeRing"></div>
     <button class="voice-button" id="voiceBtn">
@@ -240,16 +240,16 @@
       </svg>
     </button>
   </div>
-  
+
   <div class="transcript-container">
     <div class="transcript-title">Gesprek</div>
     <div class="transcript-messages" id="messages"></div>
   </div>
-  
+
   <div class="connection-status disconnected" id="connectionStatus">
     Niet verbonden
   </div>
-  
+
   <div class="error-toast" id="errorToast"></div>
 
   <script>
@@ -261,7 +261,7 @@
     let isActive = false
     let currentUserMessage = null
     let currentAssistantMessage = null
-    
+
     // DOM elements
     const voiceBtn = document.getElementById('voiceBtn')
     const micIcon = document.getElementById('micIcon')
@@ -273,20 +273,20 @@
     const errorToast = document.getElementById('errorToast')
     const volumeRing = document.getElementById('volumeRing')
     const micInfo = document.getElementById('micInfo')
-    
+
     // Volume feedback - subtle ring that scales with audio level
     let volumeSmooth = 0
     function updateVolumeFeedback(volume) {
       // Smooth the volume for less jittery animation
       volumeSmooth = volumeSmooth * 0.7 + volume * 0.3
-      
+
       // Scale ring size based on volume (subtle: 1.0 to 1.15)
       const scale = 1 + (volumeSmooth * 0.15)
       const opacity = 0.3 + (volumeSmooth * 0.5)
-      
+
       volumeRing.style.transform = `translate(-50%, -50%) scale(${scale})`
       volumeRing.style.borderColor = `rgba(76, 175, 80, ${opacity})`
-      
+
       // Add active class when there's audio
       if (volumeSmooth > 0.05) {
         volumeRing.classList.add('active')
@@ -294,35 +294,35 @@
         volumeRing.classList.remove('active')
       }
     }
-    
+
     // Connect to WebSocket
     function connect() {
       const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:'
       ws = new WebSocket(`${protocol}//${location.host}/ws`)
-      
+
       connectionStatus.textContent = 'Verbinden...'
       connectionStatus.className = 'connection-status connecting'
-      
+
       ws.onopen = () => {
         console.log('WebSocket connected')
         connectionStatus.textContent = 'Verbonden'
         connectionStatus.className = 'connection-status connected'
       }
-      
+
       ws.onclose = () => {
         console.log('WebSocket closed')
         connectionStatus.textContent = 'Niet verbonden'
         connectionStatus.className = 'connection-status disconnected'
-        
+
         // Reconnect after delay
         setTimeout(connect, 3000)
       }
-      
+
       ws.onerror = (err) => {
         console.error('WebSocket error:', err)
         showError('Verbindingsfout')
       }
-      
+
       ws.onmessage = async (event) => {
         // Binary audio data
         if (event.data instanceof Blob) {
@@ -330,50 +330,38 @@
           queueAudio(buffer)
           return
         }
-        
+
         // Text message
         const msg = JSON.parse(event.data)
         handleMessage(msg)
       }
     }
-    
-    // Track previous state for audio playback
-    let previousState = 'idle'
-    
+
     // Handle server messages
     function handleMessage(msg) {
       switch (msg.type) {
         case 'ready':
           console.log('Server ready')
           break
-          
+
         case 'state':
-          // If transitioning from speaking to something else, play audio
-          if (previousState === 'speaking' && msg.state !== 'speaking') {
-            playAccumulatedAudio()
-          }
-          // If transitioning to idle, also try to play (in case we missed speaking)
-          if (msg.state === 'idle' && audioChunks.length > 0) {
-            playAccumulatedAudio()
-          }
-          previousState = msg.state
           updateState(msg.state)
           break
-          
+
         case 'transcript':
           handleTranscript(msg.text, msg.isFinal, msg.role)
           break
-          
+
         case 'error':
           showError(msg.message)
           break
       }
     }
-    
+
     // Update state indicator
     function updateState(state) {
       stateDot.className = `state-dot ${state}`
-      
+
       const stateNames = {
         idle: 'Wachtend',
         listening: 'Luistert...',
@@ -382,14 +370,14 @@
         interrupted: 'Onderbroken'
       }
       stateText.textContent = stateNames[state] || state
-      
-      // Don't reset assistant bubble on state changes — 
+
+      // Don't reset assistant bubble on state changes -
       // it's reset when a new user interim bubble is created
     }
-    
+
     // Track interim user message bubble (reused for overwrites)
     let interimUserBubble = null
-    
+
     // Handle transcription
     function handleTranscript(text, isFinal, role) {
       if (role === 'user') {
@@ -407,12 +395,12 @@
               msg.classList.remove('pending')
             }
           } else if (interimUserBubble) {
-            // Empty final — remove the interim bubble
+            // Empty final - remove the interim bubble
             interimUserBubble.remove()
           }
           interimUserBubble = null
         } else {
-          // Interim — show latest in a single bubble (overwrite each time)
+          // Interim - show latest in a single bubble (overwrite each time)
           if (text && text.trim()) {
             if (!interimUserBubble) {
               interimUserBubble = createMessage('user')
@@ -426,24 +414,24 @@
         if (!currentAssistantMessage) {
           currentAssistantMessage = createMessage('assistant')
         }
-        
+
         if (text) {
           currentAssistantMessage.querySelector('.message-content').textContent += text
         }
-        
+
         if (isFinal) {
           currentAssistantMessage.classList.remove('pending')
           currentAssistantMessage = null
         }
       }
-      
+
       // Scroll latest message into view
       const lastMsg = messagesEl.lastElementChild
       if (lastMsg) {
         lastMsg.scrollIntoView({ behavior: 'smooth', block: 'end' })
       }
     }
-    
+
     // Create message element
     function createMessage(role) {
       const msg = document.createElement('div')
@@ -455,12 +443,12 @@
       messagesEl.appendChild(msg)
       return msg
     }
-    
+
     // Audio playback - queue complete MP3 segments and play sequentially
     let audioQueue = []
     let currentAudio = null
     let isPlayingQueue = false
-    
+
     function queueAudio(buffer) {
       // Each binary message is now a complete MP3 segment
       const blob = new Blob([buffer], { type: 'audio/mpeg' })
@@ -468,13 +456,13 @@
       audioQueue.push(url)
       playNext()
     }
-    
+
     function playNext() {
       if (isPlayingQueue || audioQueue.length === 0) return
-      
+
       isPlayingQueue = true
       const url = audioQueue.shift()
-      
+
       currentAudio = new Audio(url)
       currentAudio.onended = () => {
         URL.revokeObjectURL(url)
@@ -495,10 +483,7 @@
         playNext()
       })
     }
-    
-    // No longer needed - audio plays immediately as segments arrive
-    function playAccumulatedAudio() {}
-    
+
     function stopAudio() {
       if (currentAudio) {
         currentAudio.pause()
@@ -510,30 +495,30 @@
       audioQueue = []
       isPlayingQueue = false
     }
-    
+
     // Simple linear resampling from source rate to target rate
     function resample(inputData, sourceSampleRate, targetSampleRate) {
       if (sourceSampleRate === targetSampleRate) {
         return inputData
       }
-      
+
       const ratio = sourceSampleRate / targetSampleRate
       const outputLength = Math.round(inputData.length / ratio)
       const output = new Float32Array(outputLength)
-      
+
       for (let i = 0; i < outputLength; i++) {
         const srcIndex = i * ratio
         const srcIndexFloor = Math.floor(srcIndex)
         const srcIndexCeil = Math.min(srcIndexFloor + 1, inputData.length - 1)
         const t = srcIndex - srcIndexFloor
-        
+
         // Linear interpolation
         output[i] = inputData[srcIndexFloor] * (1 - t) + inputData[srcIndexCeil] * t
       }
-      
+
       return output
     }
-    
+
     // Start voice session
     async function start() {
       try {
@@ -545,7 +530,7 @@
             noiseSuppression: true,
           }
         })
-        
+
         // Show which microphone is being used
         const audioTrack = mediaStream.getAudioTracks()[0]
         if (audioTrack) {
@@ -555,22 +540,22 @@
           micInfo.style.color = '#4CAF50'
           console.log('Microphone:', label, 'Sample rate:', settings.sampleRate || 'unknown')
         }
-        
+
         // Create audio context with device's native sample rate
         audioContext = new AudioContext()
         const nativeSampleRate = audioContext.sampleRate
         const targetSampleRate = 16000
-        
+
         const source = audioContext.createMediaStreamSource(mediaStream)
-        
+
         // Use ScriptProcessor (deprecated but widely supported)
         processor = audioContext.createScriptProcessor(4096, 1, 1)
-        
+
         processor.onaudioprocess = (e) => {
           if (!isActive || ws.readyState !== WebSocket.OPEN) return
-          
+
           const inputData = e.inputBuffer.getChannelData(0)
-          
+
           // Calculate volume level for visual feedback (RMS)
           let sum = 0
           for (let i = 0; i < inputData.length; i++) {
@@ -578,82 +563,82 @@
           }
           const rms = Math.sqrt(sum / inputData.length)
           const volume = Math.min(1, rms * 5) // Normalize to 0-1, with some boost
-          
+
           // Update mic button visual feedback (subtle pulse)
           updateVolumeFeedback(volume)
-          
+
           // Resample from native rate to 16kHz for Deepgram
           const resampledData = resample(inputData, nativeSampleRate, targetSampleRate)
-          
+
           // Convert to 16-bit PCM
           const pcmData = new Int16Array(resampledData.length)
           for (let i = 0; i < resampledData.length; i++) {
             pcmData[i] = Math.max(-32768, Math.min(32767, resampledData[i] * 32768))
           }
-          
+
           // Send as binary
           ws.send(pcmData.buffer)
         }
-        
+
         source.connect(processor)
         processor.connect(audioContext.destination)
-        
+
         // Tell server to start
         ws.send(JSON.stringify({ type: 'start' }))
         isActive = true
-        
+
         // Update UI
         voiceBtn.classList.add('active')
         micIcon.style.display = 'none'
         stopIcon.style.display = 'block'
-        
+
       } catch (err) {
         console.error('Start error:', err)
         showError('Kon microfoon niet starten')
       }
     }
-    
+
     // Stop voice session
     function stop() {
       if (processor) {
         processor.disconnect()
         processor = null
       }
-      
+
       if (mediaStream) {
         mediaStream.getTracks().forEach(track => track.stop())
         mediaStream = null
       }
-      
+
       // Reset volume feedback
       volumeSmooth = 0
       volumeRing.style.transform = 'translate(-50%, -50%) scale(1)'
       volumeRing.style.borderColor = 'rgba(76, 175, 80, 0)'
       volumeRing.classList.remove('active')
-      
+
       // Reset mic info
       micInfo.textContent = '🎤 Geen microfoon geselecteerd'
       micInfo.style.color = '#666'
-      
+
       // Stop any playing audio
       stopAudio()
-      
+
       if (ws && ws.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify({ type: 'stop' }))
       }
-      
+
       isActive = false
       audioQueue = []
       currentUserMessage = null
       currentAssistantMessage = null
-      
+
       // Update UI
       voiceBtn.classList.remove('active')
       micIcon.style.display = 'block'
       stopIcon.style.display = 'none'
       updateState('idle')
     }
-    
+
     // Show error toast
     function showError(message) {
       errorToast.textContent = message
@@ -662,7 +647,7 @@
         errorToast.style.display = 'none'
       }, 3000)
     }
-    
+
     // Button click handler
     voiceBtn.addEventListener('click', () => {
       if (isActive) {
@@ -671,7 +656,7 @@
         start()
       }
     })
-    
+
     // Initialize
     connect()
   </script>
