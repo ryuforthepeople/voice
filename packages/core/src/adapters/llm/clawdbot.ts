@@ -18,7 +18,7 @@ export class ClawdbotLLM extends LLMAdapter {
   private currentReject: ((error: Error) => void) | null = null
   private fullResponse = ''
   private messageId = 0
-  private pendingRequests = new Map<number, { resolve: (data: unknown) => void; reject: (err: Error) => void }>()
+  private pendingRequests = new Map<string, { resolve: (data: unknown) => void; reject: (err: Error) => void }>()
   
   constructor(config: ClawdbotLLMConfig) {
     super()
@@ -134,8 +134,8 @@ export class ClawdbotLLM extends LLMAdapter {
   private handleMessage(msg: Record<string, unknown>): void {
     console.log('[Clawdbot] Received:', JSON.stringify(msg).slice(0, 200))
     
-    // Handle JSON-RPC response (ack for chat.send)
-    if (typeof msg.id === 'number' && this.pendingRequests.has(msg.id)) {
+    // Handle response (ack for chat.send)
+    if (typeof msg.id === 'string' && this.pendingRequests.has(msg.id)) {
       const pending = this.pendingRequests.get(msg.id)!
       this.pendingRequests.delete(msg.id)
       
@@ -225,7 +225,7 @@ export class ClawdbotLLM extends LLMAdapter {
   private async sendRpc(method: string, params: Record<string, unknown>): Promise<unknown> {
     await this.ensureConnection()
     
-    const id = ++this.messageId
+    const id = `msg-${++this.messageId}`  // Must be string
     
     return new Promise((resolve, reject) => {
       this.pendingRequests.set(id, { resolve, reject })
@@ -246,8 +246,9 @@ export class ClawdbotLLM extends LLMAdapter {
         },
       })
       
+      // Gateway uses type: "req" format, not JSON-RPC
       this.ws!.send(JSON.stringify({
-        jsonrpc: '2.0',
+        type: 'req',
         id,
         method,
         params,
