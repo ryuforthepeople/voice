@@ -25,31 +25,37 @@ export class ClawdbotLLM extends LLMAdapter {
     this.config = config
   }
   
+  private connected = false
+  private connectResolve: (() => void) | null = null
+  private connectReject: ((err: Error) => void) | null = null
+  
   private async ensureConnection(): Promise<void> {
-    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+    if (this.ws && this.ws.readyState === WebSocket.OPEN && this.connected) {
       return
     }
     
     return new Promise((resolve, reject) => {
+      this.connectResolve = resolve
+      this.connectReject = reject
+      this.connected = false
+      
       const url = new URL(this.config.gatewayUrl)
-      url.searchParams.set('token', this.config.token)
       
       this.ws = new WebSocket(url.toString())
       
       const timeout = setTimeout(() => {
         reject(new Error('Gateway connection timeout'))
-      }, 10000)
+      }, 15000)
       
       this.ws.on('open', () => {
-        clearTimeout(timeout)
-        console.log('[Clawdbot] Gateway connected')
-        resolve()
+        console.log('[Clawdbot] WebSocket opened, waiting for challenge...')
+        // Don't resolve yet - wait for handshake to complete
       })
       
       this.ws.on('message', (data: WebSocket.RawData) => {
         try {
           const msg = JSON.parse(data.toString())
-          this.handleMessage(msg)
+          this.handleProtocolMessage(msg, timeout, resolve, reject)
         } catch (err) {
           console.error('[Clawdbot] Failed to parse message:', err)
         }
@@ -64,8 +70,65 @@ export class ClawdbotLLM extends LLMAdapter {
       this.ws.on('close', () => {
         console.log('[Clawdbot] Gateway disconnected')
         this.ws = null
+        this.connected = false
       })
     })
+  }
+  
+  private handleProtocolMessage(
+    msg: Record<string, unknown>,
+    timeout: ReturnType<typeof setTimeout>,
+    resolve: () => void,
+    reject: (err: Error) => void
+  ): void {
+    // Handle connect.challenge - need to respond with connect request
+    if (msg.type === 'event' && msg.event === 'connect.challenge') {
+      console.log('[Clawdbot] Received challenge, sending connect...')
+      const payload = msg.payload as Record<string, unknown>
+      
+      // Send connect request
+      this.ws!.send(JSON.stringify({
+        type: 'req',
+        id: 'connect-1',
+        method: 'connect',
+        params: {
+          minProtocol: 3,
+          maxProtocol: 3,
+          client: {
+            id: 'voicekit',
+            version: '0.1.0',
+            platform: 'node',
+            mode: 'operator',
+          },
+          role: 'operator',
+          scopes: ['operator.read', 'operator.write'],
+          caps: [],
+          commands: [],
+          permissions: {},
+          auth: { token: this.config.token },
+          locale: 'nl-NL',
+          userAgent: 'voicekit/0.1.0',
+        },
+      }))
+      return
+    }
+    
+    // Handle connect response
+    if (msg.type === 'res' && msg.id === 'connect-1') {
+      clearTimeout(timeout)
+      if (msg.ok) {
+        console.log('[Clawdbot] Connected successfully!')
+        this.connected = true
+        resolve()
+      } else {
+        const error = msg.error as Record<string, unknown>
+        reject(new Error(`Connect failed: ${error?.message || JSON.stringify(error)}`))
+      }
+      return
+    }
+    
+    // Other messages go to the regular handler
+    this.handleMessage(msg)
   }
   
   private handleMessage(msg: Record<string, unknown>): void {
