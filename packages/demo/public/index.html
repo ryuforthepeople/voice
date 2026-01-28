@@ -371,44 +371,45 @@
       }
       stateText.textContent = stateNames[state] || state
 
-      // Don't reset assistant bubble on state changes -
-      // it's reset when a new user interim bubble is created
+      // Lock user bubble when processing starts (silence timer fired)
+      if (state === 'processing' && userBubble) {
+        userBubble.classList.remove('pending')
+        userBubble = null
+        userFinalText = ''
+        userInterimText = ''
+      }
     }
 
-    // Track interim user message bubble (reused for overwrites)
-    let interimUserBubble = null
+    // Single user bubble that accumulates all text during a listening turn
+    let userBubble = null
+    let userFinalText = ''    // accumulated final segments
+    let userInterimText = ''  // current interim (not yet confirmed)
 
     // Handle transcription
     function handleTranscript(text, isFinal, role) {
       if (role === 'user') {
-        if (isFinal) {
-          // Final transcript - lock the bubble
-          if (text && text.trim()) {
-            if (interimUserBubble) {
-              // Update existing interim bubble with final text
-              interimUserBubble.querySelector('.message-content').textContent = text.trim()
-              interimUserBubble.classList.remove('pending')
-            } else {
-              // No interim bubble existed, create final one
-              const msg = createMessage('user')
-              msg.querySelector('.message-content').textContent = text.trim()
-              msg.classList.remove('pending')
-            }
-          } else if (interimUserBubble) {
-            // Empty final - remove the interim bubble
-            interimUserBubble.remove()
-          }
-          interimUserBubble = null
-        } else {
-          // Interim - show latest in a single bubble (overwrite each time)
-          if (text && text.trim()) {
-            if (!interimUserBubble) {
-              interimUserBubble = createMessage('user')
-              currentAssistantMessage = null // new user turn, reset assistant bubble
-            }
-            interimUserBubble.querySelector('.message-content').textContent = text.trim()
-          }
+        if (!text || !text.trim()) return
+        
+        // Ensure we have a bubble
+        if (!userBubble) {
+          userBubble = createMessage('user')
+          currentAssistantMessage = null
+          userFinalText = ''
+          userInterimText = ''
         }
+        
+        if (isFinal) {
+          // Append final segment to accumulated text
+          userFinalText = (userFinalText + ' ' + text).trim()
+          userInterimText = ''
+        } else {
+          // Interim — show after accumulated finals
+          userInterimText = text.trim()
+        }
+        
+        // Display: finals + current interim
+        const display = (userFinalText + ' ' + userInterimText).trim()
+        userBubble.querySelector('.message-content').textContent = display
       } else {
         // Assistant response
         if (!currentAssistantMessage) {
