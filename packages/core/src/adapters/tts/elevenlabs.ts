@@ -72,21 +72,28 @@ export class ElevenLabsTTS extends TTSAdapter {
         throw new Error('No response body')
       }
       
-      // Stream the audio chunks
+      // Accumulate all chunks into one complete MP3 buffer
+      // (client expects complete MP3 segments for playback)
       const reader = response.body.getReader()
+      const chunks: Uint8Array[] = []
       
       while (true) {
         const { done, value } = await reader.read()
-        
-        if (done) {
-          this.emit('end')
-          break
-        }
-        
-        if (value) {
-          this.emit('audio', Buffer.from(value))
-        }
+        if (done) break
+        if (value) chunks.push(value)
       }
+      
+      // Emit as one complete MP3
+      const totalLength = chunks.reduce((acc, c) => acc + c.length, 0)
+      const combined = new Uint8Array(totalLength)
+      let offset = 0
+      for (const chunk of chunks) {
+        combined.set(chunk, offset)
+        offset += chunk.length
+      }
+      
+      this.emit('audio', Buffer.from(combined))
+      this.emit('end')
     } catch (err) {
       if ((err as Error).name === 'AbortError') {
         console.log('[ElevenLabs] Synthesis aborted')
