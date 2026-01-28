@@ -30,6 +30,14 @@ export class VoiceSession extends EventEmitter<SessionEvents> {
   private pendingTTSText = ''
   private ttsTimeout: ReturnType<typeof setTimeout> | null = null
   
+  // Silence detection — auto-process after no speech
+  private silenceTimeout: ReturnType<typeof setTimeout> | null = null
+  private silenceMs: number = 3000
+  
+  // Queue: user speech captured while AI is processing/speaking
+  private queuedUserText = ''
+  private hasQueuedInput = false
+  
   constructor(options: VoiceSessionOptions) {
     super()
     
@@ -50,23 +58,26 @@ export class VoiceSession extends EventEmitter<SessionEvents> {
   private setupAdapters(): void {
     // STT events
     this.stt.on('transcript', (result) => {
-      if (result.text) {
+      if (!result.text) return
+      
+      const state = this.stateMachine.current
+      
+      if (state === 'listening') {
+        // Normal: accumulate text
         this.currentUserText = result.isFinal 
           ? this.currentUserText + ' ' + result.text 
           : this.currentUserText.split(' ').slice(0, -1).join(' ') + ' ' + result.text
-        
         this.currentUserText = this.currentUserText.trim()
         this.emit('transcript', result.text, result.isFinal, 'user')
-      }
-      
-      // Check for interrupt
-      if (this.interruptHandler.shouldInterrupt(this.stateMachine.current, !!result.text)) {
-        this.handleInterrupt()
-      }
-      
-      // If final transcript and we're listening, process it
-      if (result.isFinal && this.currentUserText && this.stateMachine.current === 'listening') {
-        this.processUserInput()
+        this.resetSilenceTimer()
+      } else if (state === 'processing' || state === 'speaking') {
+        // AI is busy — queue the input for after it finishes
+        this.queuedUserText = result.isFinal
+          ? this.queuedUserText + ' ' + result.text
+          : this.queuedUserText.split(' ').slice(0, -1).join(' ') + ' ' + result.text
+        this.queuedUserText = this.queuedUserText.trim()
+        this.hasQueuedInput = true
+        this.emit('transcript', result.text, result.isFinal, 'user')
       }
     })
     
@@ -80,9 +91,23 @@ export class VoiceSession extends EventEmitter<SessionEvents> {
     })
     
     this.tts.on('end', () => {
-      // TTS finished, go back to listening
-      if (this.stateMachine.current === 'speaking') {
-        this.stateMachine.transition('listening')
+      if (this.stateMachine.current !== 'speaking') return
+      
+      if (this.hasQueuedInput && this.queuedUserText.trim()) {
+        // User spoke while AI was busy — process their queued input
+        console.log('[Session] Processing queued user input:', this.queuedUserText)
+        this.currentUserText = this.queuedUserText
+        this.queuedUserText = ''
+        this.hasQueuedInput = false
+        // Start listening again + start silence timer for the queued text
+        this.restartListening().then(() => {
+          this.resetSilenceTimer()
+        })
+      } else {
+        // No queued input — restart listening for next turn
+        this.queuedUserText = ''
+        this.hasQueuedInput = false
+        this.restartListening()
       }
     })
     
@@ -158,28 +183,6 @@ export class VoiceSession extends EventEmitter<SessionEvents> {
     }
   }
   
-  private handleInterrupt(): void {
-    console.log('User interrupted AI')
-    
-    // Stop TTS
-    this.tts.stop()
-    
-    // Stop LLM generation
-    this.llm.stop()
-    
-    // Clear pending TTS
-    this.pendingTTSText = ''
-    if (this.ttsTimeout) {
-      clearTimeout(this.ttsTimeout)
-      this.ttsTimeout = null
-    }
-    
-    // Transition to interrupted then listening
-    this.stateMachine.transition('interrupted')
-    this.interruptHandler.reset()
-    this.stateMachine.transition('listening')
-  }
-  
   private async processUserInput(): Promise<void> {
     const userText = this.currentUserText.trim()
     if (!userText) return
@@ -235,9 +238,63 @@ export class VoiceSession extends EventEmitter<SessionEvents> {
   }
   
   /**
+   * Restart STT after AI finishes responding — ready for next turn
+   */
+  private async restartListening(): Promise<void> {
+    try {
+      await this.stt.start({
+        sampleRate: 16000,
+        channels: 1,
+        encoding: 'linear16',
+      })
+      this.stateMachine.transition('listening')
+    } catch (error) {
+      console.error('[Session] Failed to restart listening:', error)
+      this.stateMachine.transition('idle')
+    }
+  }
+  
+  /**
+   * Reset silence timer — called on each speech activity
+   */
+  private resetSilenceTimer(): void {
+    if (this.silenceTimeout) {
+      clearTimeout(this.silenceTimeout)
+    }
+    this.silenceTimeout = setTimeout(() => {
+      console.log(`[Session] ${this.silenceMs}ms silence detected — auto-processing`)
+      this.stopListening()
+    }, this.silenceMs)
+  }
+  
+  private clearSilenceTimer(): void {
+    if (this.silenceTimeout) {
+      clearTimeout(this.silenceTimeout)
+      this.silenceTimeout = null
+    }
+  }
+  
+  /**
+   * Stop listening and process the accumulated text
+   */
+  async stopListening(): Promise<void> {
+    this.clearSilenceTimer()
+    await this.stt.stop()
+    
+    if (this.currentUserText.trim()) {
+      await this.processUserInput()
+    } else {
+      this.stateMachine.transition('idle')
+    }
+  }
+  
+  /**
    * Stop the voice session
    */
   async stop(): Promise<void> {
+    this.clearSilenceTimer()
+    this.queuedUserText = ''
+    this.hasQueuedInput = false
     this.tts.stop()
     this.llm.stop()
     await this.stt.stop()

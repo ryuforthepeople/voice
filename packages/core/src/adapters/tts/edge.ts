@@ -64,12 +64,9 @@ export class EdgeTTS extends TTSAdapter {
         return
       }
       
-      // Emit audio in chunks for streaming
-      const chunkSize = 4096
-      for (let i = 0; i < audioBuffer.length && !this.aborted; i += chunkSize) {
-        const chunk = audioBuffer.subarray(i, Math.min(i + chunkSize, audioBuffer.length))
-        this.emit('audio', Buffer.from(chunk))
-      }
+      // Emit the complete MP3 buffer as one chunk
+      // (Edge TTS already buffers fully, and splitting MP3 creates invalid fragments)
+      this.emit('audio', Buffer.from(audioBuffer))
       
       this.active = false
       this.emit('end')
