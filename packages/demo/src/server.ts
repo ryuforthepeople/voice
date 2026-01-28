@@ -2,7 +2,7 @@ import { config } from 'dotenv'
 import { resolve } from 'path'
 
 // Load environment variables from root .env
-config({ path: resolve(import.meta.dirname, '../../.env') })
+config({ path: resolve(import.meta.dirname, '../../../.env') })
 
 import { serve } from '@hono/node-server'
 import { Hono } from 'hono'
