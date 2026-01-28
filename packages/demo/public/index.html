@@ -465,6 +465,7 @@
       const url = audioQueue.shift()
 
       currentAudio = new Audio(url)
+      currentAudio.playbackRate = 1.2
       currentAudio.onended = () => {
         URL.revokeObjectURL(url)
         currentAudio = null

@@ -111,7 +111,7 @@ app.get(
               if (ELEVENLABS_API_KEY) {
                 tts = new ElevenLabsTTS({
                   apiKey: ELEVENLABS_API_KEY,
-                  voiceId: 'pNInz6obpgDQGcFmaJgB', // Adam - deep male
+                  voiceId: '21m00Tcm4TlvDq8ikWAM', // Rachel - calm female
                 })
                 console.log(`[${sessionId}] Using ElevenLabs TTS`)
               } else {
