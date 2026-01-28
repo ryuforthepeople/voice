@@ -15,23 +15,36 @@ import {
   DeepgramSTT,
   EdgeTTS,
   ClaudeLLM,
+  ClawdbotLLM,
   type ClientMessage,
   type ServerMessage,
   type SessionState,
+  type LLMAdapter,
 } from '@for-the-people/voice-core'
 
 // Environment variables
 const DEEPGRAM_API_KEY = process.env.DEEPGRAM_API_KEY
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY
+const CLAWDBOT_GATEWAY_URL = process.env.CLAWDBOT_GATEWAY_URL
+const CLAWDBOT_TOKEN = process.env.CLAWDBOT_TOKEN
+
+// Mode: 'clawdbot' or 'standalone'
+const MODE = CLAWDBOT_GATEWAY_URL && CLAWDBOT_TOKEN ? 'clawdbot' : 'standalone'
 
 if (!DEEPGRAM_API_KEY) {
   console.error('Missing DEEPGRAM_API_KEY environment variable')
   process.exit(1)
 }
 
-if (!ANTHROPIC_API_KEY) {
-  console.error('Missing ANTHROPIC_API_KEY environment variable')
+if (MODE === 'standalone' && !ANTHROPIC_API_KEY) {
+  console.error('Missing ANTHROPIC_API_KEY environment variable (required for standalone mode)')
+  console.error('Or set CLAWDBOT_GATEWAY_URL and CLAWDBOT_TOKEN for Clawdbot mode')
   process.exit(1)
+}
+
+console.log(`Mode: ${MODE}`)
+if (MODE === 'clawdbot') {
+  console.log(`Gateway: ${CLAWDBOT_GATEWAY_URL}`)
 }
 
 const app = new Hono()
@@ -94,10 +107,21 @@ app.get(
                 voice: 'nl-NL-MaartenNeural',
               })
               
-              const llm = new ClaudeLLM({
-                apiKey: ANTHROPIC_API_KEY!,
-                language: 'nl-NL',
-              })
+              // Create LLM adapter based on mode
+              let llm: LLMAdapter
+              if (MODE === 'clawdbot') {
+                llm = new ClawdbotLLM({
+                  gatewayUrl: CLAWDBOT_GATEWAY_URL!,
+                  token: CLAWDBOT_TOKEN!,
+                })
+                console.log(`[${sessionId}] Using Clawdbot mode`)
+              } else {
+                llm = new ClaudeLLM({
+                  apiKey: ANTHROPIC_API_KEY!,
+                  language: 'nl-NL',
+                })
+                console.log(`[${sessionId}] Using standalone Claude mode`)
+              }
               
               // Create session
               session = new VoiceSession({

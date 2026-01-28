@@ -29,7 +29,13 @@ importers:
       eventemitter3:
         specifier: ^5.0.1
         version: 5.0.4
+      ws:
+        specifier: ^8.19.0
+        version: 8.19.0
     devDependencies:
+      '@types/ws':
+        specifier: ^8.18.1
+        version: 8.18.1
       tsup:
         specifier: ^8.5.0
         version: 8.5.1(tsx@4.21.0)(typescript@5.9.3)
@@ -394,6 +400,9 @@ packages:
 
   '@types/node@22.19.7':
     resolution: {integrity: sha512-MciR4AKGHWl7xwxkBa6xUGxQJ4VBOmPTF7sL+iGzuahOFaO0jHCsuEfS80pan1ef4gWId1oWOweIhrDEYLuaOw==}
+
+  '@types/ws@8.18.1':
+    resolution: {integrity: sha512-ThVF6DCVhA8kUGy+aazFQ4kXQ7E1Ty7A3ypFOe0IcJV8O/M511G99AW24irKrW56Wt44yG9+ij8FaqoBGkuBXg==}
 
   acorn@8.15.0:
     resolution: {integrity: sha512-NZyJarBfL7nWwIq+FDL6Zp/yHEhePMNnnJ0y3qfieCrmNvYct8uvtiV41UvlSe6apAfk0fY1FbWx+NwfmpvtTg==}
@@ -916,6 +925,10 @@ snapshots:
   '@types/node@22.19.7':
     dependencies:
       undici-types: 6.21.0
+
+  '@types/ws@8.18.1':
+    dependencies:
+      '@types/node': 22.19.7
 
   acorn@8.15.0: {}
 

@@ -19,9 +19,11 @@
     "@anthropic-ai/sdk": "^0.52.0",
     "@deepgram/sdk": "^3.11.1",
     "edge-tts": "^1.0.1",
-    "eventemitter3": "^5.0.1"
+    "eventemitter3": "^5.0.1",
+    "ws": "^8.19.0"
   },
   "devDependencies": {
+    "@types/ws": "^8.18.1",
     "tsup": "^8.5.0",
     "typescript": "^5.8.3"
   }

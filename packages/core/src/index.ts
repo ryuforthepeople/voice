@@ -11,6 +11,7 @@ export { EdgeTTS, type EdgeTTSConfig } from './adapters/tts/edge.js'
 
 export { LLMAdapter, type LLMEvents, type LLMMessage } from './adapters/llm/adapter.js'
 export { ClaudeLLM, type ClaudeLLMConfig } from './adapters/llm/claude.js'
+export { ClawdbotLLM, type ClawdbotLLMConfig } from './adapters/llm/clawdbot.js'
 
 // Session
 export { VoiceSession, type VoiceSessionOptions } from './session/manager.js'
