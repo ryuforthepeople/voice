@@ -43,13 +43,29 @@ export class DeepgramSTT extends STTAdapter {
       channels: format?.channels || 1,
     })
     
-    this.connection.on(LiveTranscriptionEvents.Open, () => {
-      this.active = true
+    // Wait for connection to be ready
+    await new Promise<void>((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        reject(new Error('Deepgram connection timeout'))
+      }, 10000)
+      
+      this.connection!.on(LiveTranscriptionEvents.Open, () => {
+        this.active = true
+        clearTimeout(timeout)
+        console.log('[Deepgram] Connection opened')
+        resolve()
+      })
+      
+      this.connection!.on(LiveTranscriptionEvents.Error, (error) => {
+        clearTimeout(timeout)
+        reject(error)
+      })
     })
     
     this.connection.on(LiveTranscriptionEvents.Transcript, (data) => {
       const transcript = data.channel?.alternatives?.[0]
       if (transcript && transcript.transcript) {
+        console.log('[Deepgram] Transcript:', transcript.transcript, data.is_final ? '(final)' : '(interim)')
         this.emit('transcript', {
           text: transcript.transcript,
           isFinal: data.is_final || false,
@@ -87,6 +103,8 @@ export class DeepgramSTT extends STTAdapter {
       // Convert Buffer to ArrayBuffer for Deepgram
       const arrayBuffer = audio.buffer.slice(audio.byteOffset, audio.byteOffset + audio.byteLength)
       this.connection.send(arrayBuffer as ArrayBuffer)
+    } else {
+      console.log('[Deepgram] Audio received but connection not ready:', { hasConnection: !!this.connection, active: this.active })
     }
   }
   
