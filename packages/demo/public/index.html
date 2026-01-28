@@ -339,6 +339,9 @@
       }
     }
     
+    // Track previous state for audio playback
+    let previousState = 'idle'
+    
     // Handle server messages
     function handleMessage(msg) {
       switch (msg.type) {
@@ -347,6 +350,15 @@
           break
           
         case 'state':
+          // If transitioning from speaking to something else, play audio
+          if (previousState === 'speaking' && msg.state !== 'speaking') {
+            playAccumulatedAudio()
+          }
+          // If transitioning to idle, also try to play (in case we missed speaking)
+          if (msg.state === 'idle' && audioChunks.length > 0) {
+            playAccumulatedAudio()
+          }
+          previousState = msg.state
           updateState(msg.state)
           break
           
@@ -374,23 +386,27 @@
       stateText.textContent = stateNames[state] || state
     }
     
+    // Track interim transcript for display
+    let interimUserText = ''
+    
     // Handle transcription
     function handleTranscript(text, isFinal, role) {
       if (role === 'user') {
-        if (!currentUserMessage) {
-          currentUserMessage = createMessage('user')
-        }
-        
-        if (text) {
-          currentUserMessage.querySelector('.message-content').textContent = 
-            (currentUserMessage.querySelector('.message-content').textContent || '') + ' ' + text
-        }
-        
         if (isFinal) {
-          currentUserMessage.classList.remove('pending')
-          currentUserMessage = null
+          // Final transcript - create message bubble
+          if (text && text.trim()) {
+            const msg = createMessage('user')
+            msg.querySelector('.message-content').textContent = text.trim()
+            msg.classList.remove('pending')
+          }
+          interimUserText = ''
+        } else {
+          // Interim - just update the state indicator to show we're hearing
+          interimUserText = text
+          // Could show in a subtle "hearing..." indicator if desired
         }
       } else {
+        // Assistant response
         if (!currentAssistantMessage) {
           currentAssistantMessage = createMessage('assistant')
         }
@@ -421,39 +437,62 @@
       return msg
     }
     
-    // Audio playback queue
+    // Audio playback - accumulate chunks and play as MP3
+    let audioChunks = []
+    let currentAudio = null
+    
     function queueAudio(buffer) {
-      audioQueue.push(buffer)
-      if (!isPlaying) {
-        playNext()
-      }
+      audioChunks.push(new Uint8Array(buffer))
     }
     
-    async function playNext() {
-      if (audioQueue.length === 0) {
-        isPlaying = false
-        return
+    // Called when we receive 'speaking' state - play accumulated audio
+    function playAccumulatedAudio() {
+      if (audioChunks.length === 0) return
+      
+      // Combine all chunks into one blob
+      const totalLength = audioChunks.reduce((acc, chunk) => acc + chunk.length, 0)
+      const combined = new Uint8Array(totalLength)
+      let offset = 0
+      for (const chunk of audioChunks) {
+        combined.set(chunk, offset)
+        offset += chunk.length
       }
       
-      isPlaying = true
-      const buffer = audioQueue.shift()
+      // Clear chunks
+      audioChunks = []
       
-      try {
-        if (!audioContext) {
-          audioContext = new AudioContext()
-        }
-        
-        // Decode MP3 audio
-        const audioBuffer = await audioContext.decodeAudioData(buffer)
-        const source = audioContext.createBufferSource()
-        source.buffer = audioBuffer
-        source.connect(audioContext.destination)
-        source.onended = playNext
-        source.start()
-      } catch (err) {
+      // Create blob and play with Audio element
+      const blob = new Blob([combined], { type: 'audio/mpeg' })
+      const url = URL.createObjectURL(blob)
+      
+      // Stop previous audio if playing
+      if (currentAudio) {
+        currentAudio.pause()
+        URL.revokeObjectURL(currentAudio.src)
+      }
+      
+      currentAudio = new Audio(url)
+      currentAudio.onended = () => {
+        URL.revokeObjectURL(url)
+        currentAudio = null
+      }
+      currentAudio.onerror = (err) => {
         console.error('Audio playback error:', err)
-        playNext() // Continue with next
+        URL.revokeObjectURL(url)
+        currentAudio = null
       }
+      currentAudio.play().catch(err => {
+        console.error('Audio play failed:', err)
+      })
+    }
+    
+    function stopAudio() {
+      if (currentAudio) {
+        currentAudio.pause()
+        URL.revokeObjectURL(currentAudio.src)
+        currentAudio = null
+      }
+      audioChunks = []
     }
     
     // Simple linear resampling from source rate to target rate
@@ -579,6 +618,9 @@
       // Reset mic info
       micInfo.textContent = '🎤 Geen microfoon geselecteerd'
       micInfo.style.color = '#666'
+      
+      // Stop any playing audio
+      stopAudio()
       
       if (ws && ws.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify({ type: 'stop' }))
