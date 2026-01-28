@@ -69,7 +69,9 @@ export class ClawdbotLLM extends LLMAdapter {
   }
   
   private handleMessage(msg: Record<string, unknown>): void {
-    // Handle JSON-RPC response
+    console.log('[Clawdbot] Received:', JSON.stringify(msg).slice(0, 200))
+    
+    // Handle JSON-RPC response (ack for chat.send)
     if (typeof msg.id === 'number' && this.pendingRequests.has(msg.id)) {
       const pending = this.pendingRequests.get(msg.id)!
       this.pendingRequests.delete(msg.id)
@@ -77,23 +79,72 @@ export class ClawdbotLLM extends LLMAdapter {
       if (msg.error) {
         pending.reject(new Error(String((msg.error as Record<string, unknown>).message || msg.error)))
       } else {
+        // chat.send acks with { runId, status: "started" } - don't resolve yet
+        const result = msg.result as Record<string, unknown>
+        if (result?.status === 'started' || result?.status === 'in_flight') {
+          console.log('[Clawdbot] Run started:', result.runId)
+          // Don't resolve - wait for chat events
+          return
+        }
         pending.resolve(msg.result)
       }
       return
     }
     
-    // Handle streaming response chunks
-    if (msg.method === 'chat.chunk') {
+    // Handle chat events (streaming response)
+    if (msg.method === 'chat') {
       const params = msg.params as Record<string, unknown>
-      const chunk = params.text as string
+      const event = params.event as string
+      
+      // Streaming text chunk
+      if (event === 'chunk' || event === 'text') {
+        const text = (params.text || params.chunk || params.content) as string
+        if (text) {
+          this.fullResponse += text
+          this.emit('token', text)
+        }
+      }
+      
+      // Response complete
+      if (event === 'done' || event === 'complete' || event === 'end') {
+        const text = (params.text as string) || this.fullResponse
+        
+        this.active = false
+        this.emit('complete', text)
+        
+        if (this.currentResolve) {
+          this.currentResolve(text)
+          this.currentResolve = null
+          this.currentReject = null
+        }
+      }
+      
+      // Error
+      if (event === 'error') {
+        const error = new Error((params.message || params.error || 'Unknown error') as string)
+        
+        this.active = false
+        this.emit('error', error)
+        
+        if (this.currentReject) {
+          this.currentReject(error)
+          this.currentResolve = null
+          this.currentReject = null
+        }
+      }
+    }
+    
+    // Legacy format support
+    if (msg.method === 'chat.chunk' || msg.method === 'chat.text') {
+      const params = msg.params as Record<string, unknown>
+      const chunk = (params.text || params.chunk) as string
       if (chunk) {
         this.fullResponse += chunk
         this.emit('token', chunk)
       }
     }
     
-    // Handle complete response
-    if (msg.method === 'chat.complete' || msg.method === 'chat.response') {
+    if (msg.method === 'chat.complete' || msg.method === 'chat.done') {
       const params = msg.params as Record<string, unknown>
       const text = (params.text as string) || this.fullResponse
       
@@ -102,21 +153,6 @@ export class ClawdbotLLM extends LLMAdapter {
       
       if (this.currentResolve) {
         this.currentResolve(text)
-        this.currentResolve = null
-        this.currentReject = null
-      }
-    }
-    
-    // Handle error
-    if (msg.method === 'chat.error') {
-      const params = msg.params as Record<string, unknown>
-      const error = new Error(params.message as string || 'Unknown error')
-      
-      this.active = false
-      this.emit('error', error)
-      
-      if (this.currentReject) {
-        this.currentReject(error)
         this.currentResolve = null
         this.currentReject = null
       }
@@ -176,10 +212,13 @@ export class ClawdbotLLM extends LLMAdapter {
       this.currentReject = reject
       
       // Send via chat.send - Clawdbot handles the rest
+      // chat.send acks immediately, response comes via chat events
+      console.log('[Clawdbot] Sending:', lastUserMessage.content.slice(0, 50))
       this.sendRpc('chat.send', {
         text: lastUserMessage.content,
         sessionKey: this.config.sessionKey,
-        stream: true,  // Request streaming response
+      }).then(() => {
+        console.log('[Clawdbot] Send acknowledged, waiting for response...')
       }).catch((err) => {
         this.active = false
         reject(err)
