@@ -8,6 +8,7 @@ export { DeepgramSTT, type DeepgramSTTConfig } from './adapters/stt/deepgram.js'
 
 export { TTSAdapter, type TTSEvents } from './adapters/tts/adapter.js'
 export { EdgeTTS, type EdgeTTSConfig } from './adapters/tts/edge.js'
+export { ElevenLabsTTS, type ElevenLabsTTSConfig, ELEVENLABS_VOICES } from './adapters/tts/elevenlabs.js'
 
 export { LLMAdapter, type LLMEvents, type LLMMessage } from './adapters/llm/adapter.js'
 export { ClaudeLLM, type ClaudeLLMConfig } from './adapters/llm/claude.js'

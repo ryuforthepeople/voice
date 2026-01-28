@@ -14,12 +14,14 @@ import {
   VoiceSession,
   DeepgramSTT,
   EdgeTTS,
+  ElevenLabsTTS,
   ClaudeLLM,
   ClawdbotLLM,
   type ClientMessage,
   type ServerMessage,
   type SessionState,
   type LLMAdapter,
+  type TTSAdapter,
 } from '@for-the-people/voice-core'
 
 // Environment variables
@@ -27,6 +29,7 @@ const DEEPGRAM_API_KEY = process.env.DEEPGRAM_API_KEY
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY
 const CLAWDBOT_GATEWAY_URL = process.env.CLAWDBOT_GATEWAY_URL
 const CLAWDBOT_TOKEN = process.env.CLAWDBOT_TOKEN
+const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY
 
 // Mode: 'clawdbot' or 'standalone'
 const MODE = CLAWDBOT_GATEWAY_URL && CLAWDBOT_TOKEN ? 'clawdbot' : 'standalone'
@@ -103,9 +106,20 @@ app.get(
                 interimResults: true,
               })
               
-              const tts = new EdgeTTS({
-                voice: 'nl-NL-MaartenNeural',
-              })
+              // Create TTS adapter - prefer ElevenLabs if available
+              let tts: TTSAdapter
+              if (ELEVENLABS_API_KEY) {
+                tts = new ElevenLabsTTS({
+                  apiKey: ELEVENLABS_API_KEY,
+                  voiceId: 'pNInz6obpgDQGcFmaJgB', // Adam - deep male
+                })
+                console.log(`[${sessionId}] Using ElevenLabs TTS`)
+              } else {
+                tts = new EdgeTTS({
+                  voice: 'nl-NL-MaartenNeural',
+                })
+                console.log(`[${sessionId}] Using Edge TTS`)
+              }
               
               // Create LLM adapter based on mode
               let llm: LLMAdapter
