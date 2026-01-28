@@ -155,71 +155,46 @@ export class ClawdbotLLM extends LLMAdapter {
     }
     
     // Handle chat events (streaming response)
-    if (msg.method === 'chat') {
-      const params = msg.params as Record<string, unknown>
-      const event = params.event as string
+    // Format: { type: "event", event: "chat", payload: { state: "delta"|"final", message: { content: [{ type: "text", text: "..." }] } } }
+    if (msg.type === 'event' && msg.event === 'chat') {
+      const payload = msg.payload as Record<string, unknown>
+      const state = payload.state as string
+      const message = payload.message as Record<string, unknown>
       
-      // Streaming text chunk
-      if (event === 'chunk' || event === 'text') {
-        const text = (params.text || params.chunk || params.content) as string
-        if (text) {
-          this.fullResponse += text
-          this.emit('token', text)
+      // Extract text from message.content[0].text
+      let text = ''
+      if (message?.content && Array.isArray(message.content)) {
+        const textBlock = (message.content as Array<Record<string, unknown>>).find(c => c.type === 'text')
+        if (textBlock) {
+          text = textBlock.text as string || ''
+        }
+      }
+      
+      // Streaming delta
+      if (state === 'delta' && text) {
+        // Calculate the new delta (text contains full response so far)
+        const delta = text.slice(this.fullResponse.length)
+        if (delta) {
+          this.fullResponse = text
+          this.emit('token', delta)
         }
       }
       
       // Response complete
-      if (event === 'done' || event === 'complete' || event === 'end') {
-        const text = (params.text as string) || this.fullResponse
+      if (state === 'final') {
+        const finalText = text || this.fullResponse
         
         this.active = false
-        this.emit('complete', text)
+        this.emit('complete', finalText)
         
         if (this.currentResolve) {
-          this.currentResolve(text)
-          this.currentResolve = null
-          this.currentReject = null
-        }
-      }
-      
-      // Error
-      if (event === 'error') {
-        const error = new Error((params.message || params.error || 'Unknown error') as string)
-        
-        this.active = false
-        this.emit('error', error)
-        
-        if (this.currentReject) {
-          this.currentReject(error)
+          this.currentResolve(finalText)
           this.currentResolve = null
           this.currentReject = null
         }
       }
     }
     
-    // Legacy format support
-    if (msg.method === 'chat.chunk' || msg.method === 'chat.text') {
-      const params = msg.params as Record<string, unknown>
-      const chunk = (params.text || params.chunk) as string
-      if (chunk) {
-        this.fullResponse += chunk
-        this.emit('token', chunk)
-      }
-    }
-    
-    if (msg.method === 'chat.complete' || msg.method === 'chat.done') {
-      const params = msg.params as Record<string, unknown>
-      const text = (params.text as string) || this.fullResponse
-      
-      this.active = false
-      this.emit('complete', text)
-      
-      if (this.currentResolve) {
-        this.currentResolve(text)
-        this.currentResolve = null
-        this.currentReject = null
-      }
-    }
   }
   
   private async sendRpc(method: string, params: Record<string, unknown>): Promise<unknown> {
@@ -276,11 +251,12 @@ export class ClawdbotLLM extends LLMAdapter {
       this.currentReject = reject
       
       // Send via chat.send - Clawdbot handles the rest
-      // chat.send acks immediately, response comes via chat events
+      // Params: sessionKey, message, idempotencyKey
       console.log('[Clawdbot] Sending:', lastUserMessage.content.slice(0, 50))
       this.sendRpc('chat.send', {
-        text: lastUserMessage.content,
-        sessionKey: this.config.sessionKey,
+        sessionKey: this.config.sessionKey || 'agent:main',
+        message: lastUserMessage.content,
+        idempotencyKey: `voice-${Date.now()}-${Math.random().toString(36).slice(2)}`,
       }).then(() => {
         console.log('[Clawdbot] Send acknowledged, waiting for response...')
       }).catch((err) => {
