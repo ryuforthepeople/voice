@@ -408,21 +408,46 @@
       }
     }
     
+    // Simple linear resampling from source rate to target rate
+    function resample(inputData, sourceSampleRate, targetSampleRate) {
+      if (sourceSampleRate === targetSampleRate) {
+        return inputData
+      }
+      
+      const ratio = sourceSampleRate / targetSampleRate
+      const outputLength = Math.round(inputData.length / ratio)
+      const output = new Float32Array(outputLength)
+      
+      for (let i = 0; i < outputLength; i++) {
+        const srcIndex = i * ratio
+        const srcIndexFloor = Math.floor(srcIndex)
+        const srcIndexCeil = Math.min(srcIndexFloor + 1, inputData.length - 1)
+        const t = srcIndex - srcIndexFloor
+        
+        // Linear interpolation
+        output[i] = inputData[srcIndexFloor] * (1 - t) + inputData[srcIndexCeil] * t
+      }
+      
+      return output
+    }
+    
     // Start voice session
     async function start() {
       try {
-        // Get microphone access
+        // Get microphone access - let browser choose native sample rate
         mediaStream = await navigator.mediaDevices.getUserMedia({
           audio: {
-            sampleRate: 16000,
             channelCount: 1,
             echoCancellation: true,
             noiseSuppression: true,
           }
         })
         
-        // Create audio processing
-        audioContext = new AudioContext({ sampleRate: 16000 })
+        // Create audio context with device's native sample rate
+        audioContext = new AudioContext()
+        const nativeSampleRate = audioContext.sampleRate
+        const targetSampleRate = 16000
+        
         const source = audioContext.createMediaStreamSource(mediaStream)
         
         // Use ScriptProcessor (deprecated but widely supported)
@@ -433,10 +458,13 @@
           
           const inputData = e.inputBuffer.getChannelData(0)
           
+          // Resample from native rate to 16kHz for Deepgram
+          const resampledData = resample(inputData, nativeSampleRate, targetSampleRate)
+          
           // Convert to 16-bit PCM
-          const pcmData = new Int16Array(inputData.length)
-          for (let i = 0; i < inputData.length; i++) {
-            pcmData[i] = Math.max(-32768, Math.min(32767, inputData[i] * 32768))
+          const pcmData = new Int16Array(resampledData.length)
+          for (let i = 0; i < resampledData.length; i++) {
+            pcmData[i] = Math.max(-32768, Math.min(32767, resampledData[i] * 32768))
           }
           
           // Send as binary
