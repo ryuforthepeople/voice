@@ -172,17 +172,23 @@ export class ClawdbotLLM extends LLMAdapter {
       
       // Streaming delta
       if (state === 'delta' && text) {
-        // Calculate the new delta (text contains full response so far)
-        const delta = text.slice(this.fullResponse.length)
-        if (delta) {
+        if (text.length > this.fullResponse.length && text.startsWith(this.fullResponse)) {
+          // Cumulative: text is the full response so far
+          const delta = text.slice(this.fullResponse.length)
           this.fullResponse = text
           this.emit('token', delta)
+        } else if (!text.startsWith(this.fullResponse)) {
+          // Incremental: text is just the new chunk
+          this.fullResponse += text
+          this.emit('token', text)
         }
+        // else: duplicate or subset, ignore
       }
       
       // Response complete
       if (state === 'final') {
-        const finalText = text || this.fullResponse
+        // Use final text if provided and longer, otherwise use accumulated
+        const finalText = (text && text.length >= this.fullResponse.length) ? text : this.fullResponse
         
         this.active = false
         this.emit('complete', finalText)
