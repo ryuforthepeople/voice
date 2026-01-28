@@ -86,7 +86,7 @@ export class ClawdbotLLM extends LLMAdapter {
       console.log('[Clawdbot] Received challenge, sending connect...')
       const payload = msg.payload as Record<string, unknown>
       
-      // Send connect request
+      // Send connect request - use "webchat" as client ID and mode (allowed by Gateway)
       this.ws!.send(JSON.stringify({
         type: 'req',
         id: 'connect-1',
@@ -95,10 +95,10 @@ export class ClawdbotLLM extends LLMAdapter {
           minProtocol: 3,
           maxProtocol: 3,
           client: {
-            id: 'voicekit',
+            id: 'webchat',
             version: '0.1.0',
             platform: 'node',
-            mode: 'operator',
+            mode: 'webchat',
           },
           role: 'operator',
           scopes: ['operator.read', 'operator.write'],
