@@ -14,6 +14,9 @@ export { LLMAdapter, type LLMEvents, type LLMMessage } from './adapters/llm/adap
 export { ClaudeLLM, type ClaudeLLMConfig } from './adapters/llm/claude.js'
 export { ClawdbotLLM, type ClawdbotLLMConfig } from './adapters/llm/clawdbot.js'
 
+// Config
+export * from './config/index.js'
+
 // Session
 export { VoiceSession, type VoiceSessionOptions } from './session/manager.js'
 export { StateMachine } from './session/state.js'
