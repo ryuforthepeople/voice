@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CoinLore Demo — Live Crypto Market Data</title>
+<link rel="stylesheet" href="demo.css">
+</head>
+<body>
+<header>
+  <h1>💰 CoinLore Demo — Live Crypto Market Data</h1>
+  <p>Powered by CoinLore API — Free, no authentication required</p>
+</header>
+
+<div class="container">
+  <div class="global-stats">
+    <div class="stat-card"><div class="label">Total Market Cap</div><div class="value" id="g-mcap">—</div></div>
+    <div class="stat-card"><div class="label">24h Volume</div><div class="value" id="g-vol">—</div></div>
+    <div class="stat-card"><div class="label">BTC Dominance</div><div class="value" id="g-btc">—</div></div>
+    <div class="stat-card"><div class="label">Coins</div><div class="value" id="g-coins">—</div></div>
+  </div>
+
+  <div class="search-wrap">
+    <input type="text" id="search" placeholder="🔍 Search coins by name or symbol…">
+  </div>
+
+  <div class="refresh-bar"><span class="dot"></span>Auto-refreshes every 30 seconds</div>
+
+  <table class="coin-table">
+    <thead><tr><th>#</th><th>Name</th><th>Symbol</th><th>Price</th><th>24h</th><th>Market Cap</th></tr></thead>
+    <tbody id="coin-body"></tbody>
+  </table>
+
+  <div class="how-section">
+    <h2>📖 How It Works</h2>
+    <h3>What is CoinLore?</h3>
+    <p>CoinLore provides free cryptocurrency market data via a REST API. No API key or authentication required — just fetch and go.</p>
+
+    <h3>Quick Start</h3>
+<pre>// Get top 100 coins
+const res = await fetch('https://api.coinlore.net/api/tickers/');
+const data = await res.json();
+console.log(data.data); // array of coin objects
+
+// Get global market data
+const global = await fetch('https://api.coinlore.net/api/global/');
+const info = await global.json();
+console.log(info[0].total_mcap);
+
+// Get specific coin (Bitcoin = id 90)
+const btc = await fetch('https://api.coinlore.net/api/ticker/?id=90');
+const coin = await btc.json();
+console.log(coin[0].price_usd);</pre>
+
+    <h3>Key Endpoints</h3>
+    <ul>
+      <li><code>/api/tickers/?start=0&limit=100</code> — paginated coin list</li>
+      <li><code>/api/ticker/?id=90</code> — single coin by ID</li>
+      <li><code>/api/global/</code> — global market stats</li>
+    </ul>
+
+    <h3>Rate Limits</h3>
+    <p>CoinLore is free but intended for moderate use. Avoid hammering the API — a 30-second refresh interval works well. Data updates roughly every minute.</p>
+
+    <h3>Official Docs</h3>
+    <p><a href="https://www.coinlore.com/cryptocurrency-data-api" target="_blank">https://www.coinlore.com/cryptocurrency-data-api</a></p>
+  </div>
+</div>
+
+<footer>Demo built with the CoinLore API · No API key needed · Data refreshes automatically</footer>
+<script src="demo.js"></script>
+</body>
+</html>
