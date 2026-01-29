@@ -140,7 +140,7 @@
     if (!api) return;
     currentApi = api;
     currentLang = 'js';
-    window.location.hash = `api/${id}`;
+    window.location.hash = `/${toSlug(api.name)}`;
 
     const grade = api.grade || 'F';
     const emoji = gradeEmoji[grade] || '🔴';
@@ -228,7 +228,7 @@
     $('#detailOverlay').classList.remove('active');
     $('#detailPanel').classList.remove('active');
     document.body.style.overflow = '';
-    if (window.location.hash.startsWith('#api/')) history.pushState(null, '', window.location.pathname + window.location.search);
+    if (window.location.hash.length > 1) history.pushState(null, '', window.location.pathname + window.location.search);
     currentApi = null;
   }
 
@@ -330,16 +330,27 @@
     return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
+  // Slug helper
+  function toSlug(name) {
+    return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  }
+
   // Handle hash on load
   function checkHash() {
-    const m = window.location.hash.match(/^#api\/(\d+)$/);
-    if (m) openDetail(parseInt(m[1]));
+    const hash = window.location.hash.replace(/^#\/?/, '');
+    if (!hash) return;
+    // Try slug match
+    const api = API_CATALOG.find(a => toSlug(a.name) === hash);
+    if (api) { openDetail(api.id); return; }
+    // Fallback: numeric id
+    const num = parseInt(hash);
+    if (num) openDetail(num);
   }
   window.addEventListener('hashchange', checkHash);
 
   // Popstate for back button
   window.addEventListener('popstate', () => {
-    if (!window.location.hash.startsWith('#api/')) closeDetail();
+    if (!window.location.hash || window.location.hash === '#') closeDetail();
     else checkHash();
   });
 
