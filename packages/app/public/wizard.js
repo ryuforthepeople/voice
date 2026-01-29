@@ -356,8 +356,11 @@ function saveConfig() {
   };
   localStorage.setItem('voicekit_config', JSON.stringify(config));
   localStorage.setItem('voicekit_keys', JSON.stringify(keys));
-  document.getElementById('save-result').classList.add('show');
-  setTimeout(() => document.getElementById('save-result').classList.remove('show'), 5000);
+  const saveResult = document.getElementById('save-result');
+  if (saveResult) {
+    saveResult.classList.add('show');
+    setTimeout(() => saveResult.classList.remove('show'), 5000);
+  }
 }
 
 // --- Test (basic mic test) ---
