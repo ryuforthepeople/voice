@@ -2,13 +2,14 @@
 let currentStep = 0;
 const state = {
   stt: { provider: 'deepgram', language: 'multi', model: 'nova-2' },
-  llm: { provider: 'claude', model: 'claude-sonnet-4-20250514', language: 'nl-NL', systemPrompt: '' },
+  llm: { provider: 'clawdbot', model: '', language: 'nl-NL', systemPrompt: '' },
   tts: { enabled: true, provider: 'edge', voice: 'nl-NL-MaartenNeural', speed: 1.0 },
 };
 const keys = {};
 
 // LLM models per provider
 const LLM_MODELS = {
+  clawdbot: [], // No model selection — uses the agent's configured model
   claude: [
     { id: 'claude-sonnet-4-20250514', name: 'Claude Sonnet 4' },
     { id: 'claude-3-5-haiku-20241022', name: 'Claude 3.5 Haiku' },
@@ -30,6 +31,7 @@ const LLM_MODELS = {
 // Verify key provider mapping
 const VERIFY_MAP = {
   deepgram: 'deepgram',
+  clawdbot: 'clawdbot',
   claude: 'anthropic',
   gpt: 'openai',
   elevenlabs: 'elevenlabs',
@@ -39,7 +41,7 @@ const VERIFY_MAP = {
 // Cost estimates per minute (USD)
 const COSTS = {
   stt: { deepgram: 0.0043, google: 0.006, azure: 0.006, whisper: 0 },
-  llm: { claude: 0.01, gpt: 0.01, gemini: 0.005, ollama: 0 },
+  llm: { clawdbot: 0, claude: 0.01, gpt: 0.01, gemini: 0.005, ollama: 0 },
   tts: { edge: 0, elevenlabs: 0.003, 'openai-tts': 0.002 },
 };
 
@@ -104,9 +106,15 @@ function updateLLMModels() {
   }
   sel.onchange = () => { state.llm.model = sel.value; };
 
-  // Show/hide key field for local providers
-  const needsKey = state.llm.provider !== 'ollama';
-  document.getElementById('llm-key-field').style.display = needsKey ? '' : 'none';
+  const isClawdbot = state.llm.provider === 'clawdbot';
+  const isLocal = state.llm.provider === 'ollama';
+
+  // Show/hide fields based on provider
+  document.getElementById('llm-key-field').style.display = (isClawdbot || isLocal) ? 'none' : '';
+  document.getElementById('llm-clawdbot-fields').style.display = isClawdbot ? '' : 'none';
+  document.getElementById('llm-model-field').style.display = isClawdbot ? 'none' : '';
+  document.getElementById('llm-lang-field').style.display = isClawdbot ? 'none' : '';
+  document.getElementById('llm-prompt-field').style.display = isClawdbot ? 'none' : '';
 }
 updateLLMModels();
 
@@ -201,6 +209,7 @@ const VERIFY_ENDPOINTS = {
   // Anthropic & OpenAI block browser CORS — accept key without live verify
   anthropic: null,
   openai: null,
+  clawdbot: null, // WebSocket — can't verify via HTTP
 };
 
 async function verifyKey(section) {
@@ -213,6 +222,22 @@ async function verifyKey(section) {
     keyStoreName = provider;
   } else if (section === 'llm') {
     provider = state.llm.provider;
+    // Clawdbot has its own fields
+    if (provider === 'clawdbot') {
+      const gwUrl = document.getElementById('clawdbot-url').value.trim();
+      const gwToken = document.getElementById('clawdbot-token').value.trim();
+      const statusEl = document.getElementById('clawdbot-verify');
+      if (!gwUrl || !gwToken) {
+        statusEl.textContent = 'Please fill in both fields';
+        statusEl.className = 'verify-status fail';
+        return;
+      }
+      keys.clawdbotGatewayUrl = gwUrl;
+      keys.clawdbotToken = gwToken;
+      statusEl.textContent = '✅ Saved (connection verified at runtime via WebSocket)';
+      statusEl.className = 'verify-status ok';
+      return;
+    }
     keyInput = document.getElementById('llm-key');
     statusEl = document.getElementById('llm-verify');
     keyStoreName = VERIFY_MAP[provider] || provider;
@@ -277,6 +302,8 @@ async function verifyKey(section) {
 // --- Restore saved keys into inputs ---
 function restoreKeys() {
   if (keys[state.stt.provider]) document.getElementById('stt-key').value = keys[state.stt.provider];
+  if (keys.clawdbotGatewayUrl) document.getElementById('clawdbot-url').value = keys.clawdbotGatewayUrl;
+  if (keys.clawdbotToken) document.getElementById('clawdbot-token').value = keys.clawdbotToken;
   const llmKeyName = VERIFY_MAP[state.llm.provider] || state.llm.provider;
   if (keys[llmKeyName]) document.getElementById('llm-key').value = keys[llmKeyName];
   const ttsKeyName = state.tts.provider === 'openai-tts' ? 'openai' : state.tts.provider;
@@ -302,9 +329,9 @@ document.getElementById('tts-speed').oninput = function() {
 function updateSummary() {
   document.getElementById('sum-stt-provider').textContent = state.stt.provider;
   document.getElementById('sum-stt-lang').textContent = document.getElementById('stt-lang').selectedOptions[0].text;
-  document.getElementById('sum-llm-provider').textContent = state.llm.provider;
-  document.getElementById('sum-llm-model').textContent = state.llm.model;
-  document.getElementById('sum-llm-lang').textContent = document.getElementById('llm-lang').selectedOptions[0].text;
+  document.getElementById('sum-llm-provider').textContent = state.llm.provider === 'clawdbot' ? 'Clawdbot Agent' : state.llm.provider;
+  document.getElementById('sum-llm-model').textContent = state.llm.provider === 'clawdbot' ? 'Agent-configured' : state.llm.model;
+  document.getElementById('sum-llm-lang').textContent = state.llm.provider === 'clawdbot' ? 'Agent-configured' : document.getElementById('llm-lang').selectedOptions[0].text;
   document.getElementById('sum-tts-enabled').textContent = state.tts.enabled ? 'Yes' : 'No';
   document.getElementById('sum-tts-provider').textContent = state.tts.enabled ? state.tts.provider : '—';
   document.getElementById('sum-tts-voice').textContent = state.tts.enabled ? state.tts.voice : '—';
@@ -322,7 +349,9 @@ function updateSummary() {
 function saveConfig() {
   const config = {
     stt: { provider: state.stt.provider, language: state.stt.language, model: state.stt.provider === 'deepgram' ? 'nova-2' : 'default' },
-    llm: { provider: state.llm.provider, model: state.llm.model, language: state.llm.language, systemPrompt: state.llm.systemPrompt },
+    llm: state.llm.provider === 'clawdbot'
+      ? { provider: 'clawdbot' }
+      : { provider: state.llm.provider, model: state.llm.model, language: state.llm.language, systemPrompt: state.llm.systemPrompt },
     tts: { enabled: state.tts.enabled, provider: state.tts.provider, voice: state.tts.voice, speed: state.tts.speed },
   };
   localStorage.setItem('voicekit_config', JSON.stringify(config));

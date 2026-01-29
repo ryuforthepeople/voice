@@ -90,11 +90,16 @@
     <p class="panel-desc">Choose the AI that processes and responds</p>
 
     <div class="cards" id="llm-cards">
-      <div class="card selected" data-provider="claude">
+      <div class="card" data-provider="clawdbot">
+        <div class="card-icon">🔥</div>
+        <div class="card-name">Clawdbot</div>
+        <div class="card-meta">AI agent with personality, memory & tools</div>
+        <div class="card-badge">Recommended</div>
+      </div>
+      <div class="card" data-provider="claude">
         <div class="card-icon">🟣</div>
         <div class="card-name">Claude</div>
         <div class="card-meta">Anthropic, nuanced & safe</div>
-        <div class="card-badge">Recommended</div>
       </div>
       <div class="card" data-provider="gpt">
         <div class="card-icon">🟢</div>
@@ -115,6 +120,23 @@
     </div>
 
     <div id="llm-config">
+      <div id="llm-clawdbot-fields" style="display:none">
+        <div class="clawdbot-info">
+          💡 Connect to your Clawdbot agent — it brings its own personality, memory, and tools. No need to configure model, language, or prompts.
+        </div>
+        <div class="field">
+          <label>Gateway URL</label>
+          <input type="text" id="clawdbot-url" placeholder="ws://localhost:18789">
+        </div>
+        <div class="field">
+          <label>Gateway Token</label>
+          <div class="field-row">
+            <input type="password" id="clawdbot-token" placeholder="Enter gateway token...">
+            <button class="btn btn-secondary btn-sm" onclick="verifyKey('llm')">Save</button>
+          </div>
+          <div class="verify-status" id="clawdbot-verify"></div>
+        </div>
+      </div>
       <div class="field" id="llm-key-field">
         <label>API Key</label>
         <div class="field-row">
@@ -123,11 +145,11 @@
         </div>
         <div class="verify-status" id="llm-verify"></div>
       </div>
-      <div class="field">
+      <div class="field" id="llm-model-field">
         <label>Model</label>
         <select id="llm-model"></select>
       </div>
-      <div class="field">
+      <div class="field" id="llm-lang-field">
         <label>Response Language</label>
         <select id="llm-lang">
           <option value="nl-NL">Dutch</option>
@@ -136,7 +158,7 @@
           <option value="fr-FR">French</option>
         </select>
       </div>
-      <div class="field">
+      <div class="field" id="llm-prompt-field">
         <label>System Prompt (optional)</label>
         <textarea id="llm-prompt" placeholder="e.g. You are a helpful Dutch assistant..."></textarea>
       </div>
