@@ -1,0 +1,36 @@
+headersOrigin = "config"
+plugins = []
+redirects = []
+
+[functions]
+
+[functions."*"]
+
+[build]
+publish = "/home/claude/clawd/voice/packages/wizard/public"
+publishOrigin = "config"
+commandOrigin = "ui"
+base = "/home/claude/clawd/voice/packages/wizard"
+command = "turbo run build --filter @for-the-people/voice-wizard"
+
+[build.environment]
+
+[build.processing]
+
+[build.processing.css]
+
+[build.processing.html]
+
+[build.processing.images]
+
+[build.processing.js]
+
+[build.services]
+
+[[headers]]
+for = "/*"
+
+[headers.values]
+X-Frame-Options = "DENY"
+X-Content-Type-Options = "nosniff"
+Referrer-Policy = "strict-origin-when-cross-origin"

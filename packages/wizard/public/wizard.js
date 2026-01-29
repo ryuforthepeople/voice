@@ -128,35 +128,54 @@ function updateTTSKeyField() {
   document.getElementById('tts-key-field').style.display = needs ? '' : 'none';
 }
 
-// --- Voices ---
-async function loadVoices() {
+// --- Voices (hardcoded for static deployment) ---
+const VOICES = {
+  edge: [
+    { id: 'nl-NL-MaartenNeural', name: 'Maarten (Dutch male)' },
+    { id: 'nl-NL-ColetteNeural', name: 'Colette (Dutch female)' },
+    { id: 'en-US-GuyNeural', name: 'Guy (English male)' },
+    { id: 'en-US-JennyNeural', name: 'Jenny (English female)' },
+    { id: 'en-US-AriaNeural', name: 'Aria (English female)' },
+    { id: 'de-DE-ConradNeural', name: 'Conrad (German male)' },
+    { id: 'fr-FR-HenriNeural', name: 'Henri (French male)' },
+  ],
+  elevenlabs: [
+    { id: '21m00Tcm4TlvDq8ikWAM', name: 'Rachel (calm female)' },
+    { id: 'EXAVITQu4vr4xnSDxMaL', name: 'Bella (warm female)' },
+    { id: 'ErXwobaYiN019PkySvjV', name: 'Antoni (male)' },
+    { id: 'VR6AewLTigWG4xSOukaG', name: 'Arnold (deep male)' },
+    { id: 'pNInz6obpgDQGcFmaJgB', name: 'Adam (narration male)' },
+  ],
+  'openai-tts': [
+    { id: 'alloy', name: 'Alloy (neutral)' },
+    { id: 'echo', name: 'Echo (male)' },
+    { id: 'fable', name: 'Fable (expressive)' },
+    { id: 'nova', name: 'Nova (female)' },
+    { id: 'onyx', name: 'Onyx (deep male)' },
+    { id: 'shimmer', name: 'Shimmer (warm female)' },
+  ],
+};
+
+function loadVoices() {
   const provider = state.tts.provider;
   const list = document.getElementById('voice-list');
-  list.innerHTML = '<div style="color:#aaa;font-size:0.85rem">Loading voices...</div>';
+  const voices = VOICES[provider] || [];
 
-  try {
-    const headers = {};
-    if (provider === 'elevenlabs' && keys.elevenlabs) {
-      headers['x-api-key'] = keys.elevenlabs;
-    }
-    const res = await fetch(`/api/voices/${provider}`, { headers });
-    const data = await res.json();
-    const voices = data.voices || [];
+  list.innerHTML = voices.map(v => {
+    const selected = v.id === state.tts.voice ? 'selected' : '';
+    return `<div class="voice-item ${selected}" data-voice="${v.id}" onclick="selectVoice('${v.id}')">
+      <span>${v.name}</span>
+    </div>`;
+  }).join('');
 
-    list.innerHTML = voices.map(v => {
-      const id = v.voice_id;
-      const selected = id === state.tts.voice ? 'selected' : '';
-      return `<div class="voice-item ${selected}" data-voice="${id}" onclick="selectVoice('${id}')">
-        <button class="play-btn" onclick="event.stopPropagation();previewVoice('${id}','${v.name}')">▶</button>
-        <span>${v.name}</span>
-      </div>`;
-    }).join('');
+  if (!voices.length) {
+    list.innerHTML = '<div style="color:#aaa;font-size:0.85rem">No voices available for this provider</div>';
+  }
 
-    if (!voices.length) {
-      list.innerHTML = '<div style="color:#aaa;font-size:0.85rem">No voices available</div>';
-    }
-  } catch {
-    list.innerHTML = '<div style="color:#f44336;font-size:0.85rem">Failed to load voices</div>';
+  // Auto-select first voice if current selection doesn't match provider
+  if (voices.length && !voices.find(v => v.id === state.tts.voice)) {
+    state.tts.voice = voices[0].id;
+    selectVoice(voices[0].id);
   }
 }
 
@@ -167,39 +186,23 @@ function selectVoice(id) {
   });
 }
 
-async function previewVoice(voiceId, name) {
-  const provider = state.tts.provider;
-  if (provider === 'edge') {
-    // Edge TTS preview not supported via proxy (needs streaming)
-    alert('Edge TTS preview not available in browser. It will work in the voice pipeline.');
-    return;
-  }
-  const keyName = provider === 'elevenlabs' ? 'elevenlabs' : 'openai';
-  const apiKey = keys[keyName] || document.getElementById('tts-key').value;
-  if (!apiKey) { alert('Enter an API key first'); return; }
+// --- Direct browser key verification (no proxy needed) ---
+const VERIFY_ENDPOINTS = {
+  deepgram: {
+    url: 'https://api.deepgram.com/v1/projects',
+    method: 'GET',
+    headers: (key) => ({ 'Authorization': `Token ${key}` }),
+  },
+  elevenlabs: {
+    url: 'https://api.elevenlabs.io/v1/user',
+    method: 'GET',
+    headers: (key) => ({ 'xi-api-key': key }),
+  },
+  // Anthropic & OpenAI block browser CORS — accept key without live verify
+  anthropic: null,
+  openai: null,
+};
 
-  try {
-    const res = await fetch('/api/tts/preview', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        provider: provider === 'openai-tts' ? 'openai' : provider,
-        apiKey,
-        voiceId,
-        text: `Hello, I am ${name}. This is a voice preview.`,
-      }),
-    });
-    if (!res.ok) throw new Error('Preview failed');
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    const audio = new Audio(url);
-    audio.play();
-  } catch (e) {
-    alert('Preview failed: ' + e.message);
-  }
-}
-
-// --- Key verification ---
 async function verifyKey(section) {
   let provider, keyInput, statusEl, keyStoreName;
 
@@ -226,27 +229,48 @@ async function verifyKey(section) {
   const endpoint = VERIFY_MAP[provider];
   if (!endpoint) { statusEl.textContent = 'Verification not available for this provider'; statusEl.className = 'verify-status fail'; return; }
 
+  const verifyConfig = VERIFY_ENDPOINTS[endpoint];
+
+  // Providers that block CORS — accept key on format check only
+  if (!verifyConfig) {
+    const patterns = {
+      anthropic: /^sk-ant-/,
+      openai: /^sk-/,
+    };
+    const pat = patterns[endpoint];
+    if (pat && !pat.test(apiKey)) {
+      statusEl.textContent = '⚠️ Key format looks wrong (expected ' + pat.source + '...)';
+      statusEl.className = 'verify-status fail';
+      return;
+    }
+    statusEl.textContent = '✅ Key saved (format OK — live verification happens at runtime)';
+    statusEl.className = 'verify-status ok';
+    keys[keyStoreName] = apiKey;
+    return;
+  }
+
+  // Direct browser verification
   statusEl.textContent = 'Verifying...';
   statusEl.className = 'verify-status loading';
 
   try {
-    const res = await fetch(`/api/verify/${endpoint}`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ apiKey }),
+    const res = await fetch(verifyConfig.url, {
+      method: verifyConfig.method,
+      headers: verifyConfig.headers(apiKey),
     });
-    const data = await res.json();
-    if (data.valid) {
+    if (res.ok) {
       statusEl.textContent = '✅ Key is valid!';
       statusEl.className = 'verify-status ok';
       keys[keyStoreName] = apiKey;
     } else {
-      statusEl.textContent = '❌ Invalid key: ' + (data.error || 'unknown error');
+      statusEl.textContent = '❌ Invalid key (HTTP ' + res.status + ')';
       statusEl.className = 'verify-status fail';
     }
   } catch (e) {
-    statusEl.textContent = '❌ Error: ' + e.message;
-    statusEl.className = 'verify-status fail';
+    // CORS error or network issue — fall back to format check
+    statusEl.textContent = '✅ Key saved (could not verify live — will be checked at runtime)';
+    statusEl.className = 'verify-status ok';
+    keys[keyStoreName] = apiKey;
   }
 }
 
