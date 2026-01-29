@@ -1,0 +1,13 @@
+/* Shared app styles + view transitions */
+#wizard-view, #voice-view {
+  display: none;
+  animation: viewFadeIn 0.3s ease;
+}
+#wizard-view.active, #voice-view.active {
+  display: block;
+}
+
+@keyframes viewFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

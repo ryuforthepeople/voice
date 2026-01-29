@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VoiceKit</title>
+  <link rel="stylesheet" href="wizard.css">
+  <link rel="stylesheet" href="voice.css">
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+  <!-- ==================== WIZARD VIEW ==================== -->
+  <div id="wizard-view">
+    <h1>🧙 VoiceKit Setup</h1>
+    <p class="subtitle">Configure your voice pipeline in 4 steps</p>
+
+    <div class="stepper" id="stepper">
+      <div class="step-item active" data-step="0">
+        <div class="step-num">1</div><span class="step-label">Ears</span>
+      </div><div class="step-line"></div>
+      <div class="step-item" data-step="1">
+        <div class="step-num">2</div><span class="step-label">Brain</span>
+      </div><div class="step-line"></div>
+      <div class="step-item" data-step="2">
+        <div class="step-num">3</div><span class="step-label">Voice</span>
+      </div><div class="step-line"></div>
+      <div class="step-item" data-step="3">
+        <div class="step-num">4</div><span class="step-label">Save</span>
+      </div>
+    </div>
+
+    <!-- Step 1: STT -->
+    <div class="wizard-panel active" id="panel-0">
+      <h2 class="panel-title">👂 Step 1: Ears (Speech-to-Text)</h2>
+      <p class="panel-desc">Choose how your app converts speech to text</p>
+      <div class="cards" id="stt-cards">
+        <div class="card selected" data-provider="deepgram">
+          <div class="card-icon">🎙️</div>
+          <div class="card-name">Deepgram</div>
+          <div class="card-meta">Nova-2 model, fast & accurate</div>
+          <div class="card-badge">Recommended</div>
+        </div>
+        <div class="card" data-provider="google">
+          <div class="card-icon">🔤</div>
+          <div class="card-name">Google Speech</div>
+          <div class="card-meta">Wide language support</div>
+        </div>
+        <div class="card" data-provider="azure">
+          <div class="card-icon">☁️</div>
+          <div class="card-name">Azure Speech</div>
+          <div class="card-meta">Enterprise grade</div>
+        </div>
+        <div class="card" data-provider="whisper">
+          <div class="card-icon">🏠</div>
+          <div class="card-name">Whisper</div>
+          <div class="card-meta">Local, free, slower</div>
+          <div class="card-badge free">Free</div>
+        </div>
+      </div>
+      <div id="stt-config">
+        <div class="field">
+          <label>API Key</label>
+          <div class="field-row">
+            <input type="password" id="stt-key" placeholder="Enter API key...">
+            <button class="btn btn-secondary btn-sm" onclick="verifyKey('stt')">Verify</button>
+          </div>
+          <div class="verify-status" id="stt-verify"></div>
+        </div>
+        <div class="field">
+          <label>Language</label>
+          <select id="stt-lang">
+            <option value="multi">Auto-detect (multilingual)</option>
+            <option value="nl">Dutch</option>
+            <option value="en">English</option>
+            <option value="de">German</option>
+            <option value="fr">French</option>
+            <option value="es">Spanish</option>
+          </select>
+        </div>
+      </div>
+      <div class="nav-row">
+        <div></div>
+        <button class="btn btn-primary" onclick="goStep(1)">Next → Brain</button>
+      </div>
+    </div>
+
+    <!-- Step 2: LLM -->
+    <div class="wizard-panel" id="panel-1">
+      <h2 class="panel-title">🧠 Step 2: Brain (LLM)</h2>
+      <p class="panel-desc">Choose the AI that processes and responds</p>
+      <div class="cards" id="llm-cards">
+        <div class="card" data-provider="clawdbot">
+          <div class="card-icon">🔥</div>
+          <div class="card-name">Clawdbot</div>
+          <div class="card-meta">AI agent with personality, memory & tools</div>
+          <div class="card-badge">Recommended</div>
+        </div>
+        <div class="card" data-provider="claude">
+          <div class="card-icon">🟣</div>
+          <div class="card-name">Claude</div>
+          <div class="card-meta">Anthropic, nuanced & safe</div>
+        </div>
+        <div class="card" data-provider="gpt">
+          <div class="card-icon">🟢</div>
+          <div class="card-name">GPT</div>
+          <div class="card-meta">OpenAI, versatile</div>
+        </div>
+        <div class="card" data-provider="gemini">
+          <div class="card-icon">🔵</div>
+          <div class="card-name">Gemini</div>
+          <div class="card-meta">Google, multimodal</div>
+        </div>
+        <div class="card" data-provider="ollama">
+          <div class="card-icon">🏠</div>
+          <div class="card-name">Ollama</div>
+          <div class="card-meta">Local, private, free</div>
+          <div class="card-badge free">Free</div>
+        </div>
+      </div>
+      <div id="llm-config">
+        <div id="llm-clawdbot-fields" style="display:none">
+          <div class="clawdbot-info">💡 Connect to your Clawdbot agent — it brings its own personality, memory, and tools.</div>
+          <div class="field">
+            <label>Gateway URL</label>
+            <input type="text" id="clawdbot-url" placeholder="ws://localhost:18789">
+          </div>
+          <div class="field">
+            <label>Gateway Token</label>
+            <div class="field-row">
+              <input type="password" id="clawdbot-token" placeholder="Enter gateway token...">
+              <button class="btn btn-secondary btn-sm" onclick="verifyKey('llm')">Save</button>
+            </div>
+            <div class="verify-status" id="clawdbot-verify"></div>
+          </div>
+        </div>
+        <div class="field" id="llm-key-field">
+          <label>API Key</label>
+          <div class="field-row">
+            <input type="password" id="llm-key" placeholder="Enter API key...">
+            <button class="btn btn-secondary btn-sm" onclick="verifyKey('llm')">Verify</button>
+          </div>
+          <div class="verify-status" id="llm-verify"></div>
+        </div>
+        <div class="field" id="llm-model-field">
+          <label>Model</label>
+          <select id="llm-model"></select>
+        </div>
+        <div class="field" id="llm-lang-field">
+          <label>Response Language</label>
+          <select id="llm-lang">
+            <option value="nl-NL">Dutch</option>
+            <option value="en-US">English</option>
+            <option value="de-DE">German</option>
+            <option value="fr-FR">French</option>
+          </select>
+        </div>
+        <div class="field" id="llm-prompt-field">
+          <label>System Prompt (optional)</label>
+          <textarea id="llm-prompt" placeholder="e.g. You are a helpful assistant..."></textarea>
+        </div>
+      </div>
+      <div class="nav-row">
+        <button class="btn btn-secondary" onclick="goStep(0)">← Back</button>
+        <button class="btn btn-primary" onclick="goStep(2)">Next → Voice</button>
+      </div>
+    </div>
+
+    <!-- Step 3: TTS -->
+    <div class="wizard-panel" id="panel-2">
+      <h2 class="panel-title">🔊 Step 3: Voice (Text-to-Speech)</h2>
+      <p class="panel-desc">Choose how responses are spoken</p>
+      <div class="toggle-row">
+        <div class="toggle on" id="tts-toggle" onclick="toggleTTS()"></div>
+        <span>Enable voice output</span>
+      </div>
+      <div id="tts-section">
+        <div class="cards" id="tts-cards">
+          <div class="card selected" data-provider="edge">
+            <div class="card-icon">🆓</div>
+            <div class="card-name">Edge TTS</div>
+            <div class="card-meta">Microsoft, good quality</div>
+            <div class="card-badge free">Free</div>
+          </div>
+          <div class="card" data-provider="elevenlabs">
+            <div class="card-icon">🎭</div>
+            <div class="card-name">ElevenLabs</div>
+            <div class="card-meta">Best quality, natural</div>
+            <div class="card-badge">Best Quality</div>
+          </div>
+          <div class="card" data-provider="openai-tts">
+            <div class="card-icon">🔈</div>
+            <div class="card-name">OpenAI TTS</div>
+            <div class="card-meta">Good quality, affordable</div>
+          </div>
+        </div>
+        <div class="field" id="tts-key-field" style="display:none">
+          <label>API Key</label>
+          <div class="field-row">
+            <input type="password" id="tts-key" placeholder="Enter API key...">
+            <button class="btn btn-secondary btn-sm" onclick="verifyKey('tts')">Verify</button>
+          </div>
+          <div class="verify-status" id="tts-verify"></div>
+        </div>
+        <div class="field">
+          <label>Voice</label>
+          <div class="voice-list" id="voice-list"></div>
+        </div>
+        <div class="field">
+          <label>Speed: <span id="speed-val">1.0</span>x</label>
+          <input type="range" id="tts-speed" min="0.5" max="2.0" step="0.1" value="1.0" oninput="document.getElementById('speed-val').textContent=this.value">
+        </div>
+      </div>
+      <div class="nav-row">
+        <button class="btn btn-secondary" onclick="goStep(1)">← Back</button>
+        <button class="btn btn-primary" onclick="goStep(3)">Next → Save</button>
+      </div>
+    </div>
+
+    <!-- Step 4: Save -->
+    <div class="wizard-panel" id="panel-3">
+      <h2 class="panel-title">✅ Step 4: Review & Launch</h2>
+      <p class="panel-desc">Review your configuration and start talking</p>
+      <div class="summary-section">
+        <h3>👂 Speech-to-Text</h3>
+        <div class="summary-row"><span class="label">Provider</span><span id="sum-stt-provider">—</span></div>
+        <div class="summary-row"><span class="label">Language</span><span id="sum-stt-lang">—</span></div>
+      </div>
+      <div class="summary-section">
+        <h3>🧠 LLM</h3>
+        <div class="summary-row"><span class="label">Provider</span><span id="sum-llm-provider">—</span></div>
+        <div class="summary-row"><span class="label">Model</span><span id="sum-llm-model">—</span></div>
+        <div class="summary-row"><span class="label">Language</span><span id="sum-llm-lang">—</span></div>
+      </div>
+      <div class="summary-section">
+        <h3>🔊 Text-to-Speech</h3>
+        <div class="summary-row"><span class="label">Enabled</span><span id="sum-tts-enabled">—</span></div>
+        <div class="summary-row"><span class="label">Provider</span><span id="sum-tts-provider">—</span></div>
+        <div class="summary-row"><span class="label">Voice</span><span id="sum-tts-voice">—</span></div>
+        <div class="summary-row"><span class="label">Speed</span><span id="sum-tts-speed">—</span></div>
+      </div>
+      <div class="cost-estimate">
+        <div style="color:#aaa;font-size:0.85rem;margin-bottom:4px">Estimated cost per minute</div>
+        <div class="amount" id="cost-amount">—</div>
+      </div>
+      <div class="nav-row">
+        <button class="btn btn-secondary" onclick="goStep(2)">← Back</button>
+        <button class="btn btn-success" onclick="saveAndLaunch()">🚀 Save & Start Talking</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== VOICE VIEW ==================== -->
+  <div id="voice-view">
+    <div class="voice-view">
+      <div class="voice-header">
+        <h1>🎤 VoiceKit</h1>
+        <button class="settings-btn" onclick="showWizard()" title="Settings">⚙️</button>
+      </div>
+      <div class="config-bar" id="configBar"></div>
+      <p class="mic-info" id="micInfo">🎤 No microphone selected</p>
+
+      <div class="state-indicator">
+        <div class="state-dot" id="stateDot"></div>
+        <span class="state-text" id="stateText">Idle</span>
+      </div>
+
+      <div class="voice-button-container">
+        <div class="volume-ring" id="volumeRing"></div>
+        <button class="voice-button" id="voiceBtn">
+          <svg id="micIcon" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm-1-9c0-.55.45-1 1-1s1 .45 1 1v6c0 .55-.45 1-1 1s-1-.45-1-1V5z"/>
+            <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+          </svg>
+          <svg id="stopIcon" viewBox="0 0 24 24" fill="currentColor" style="display:none">
+            <rect x="6" y="6" width="12" height="12" rx="2"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="transcript-container">
+        <div class="transcript-title">Conversation</div>
+        <div class="transcript-messages" id="messages"></div>
+      </div>
+
+      <div class="connection-status disconnected" id="connectionStatus">Disconnected</div>
+      <div class="error-toast" id="errorToast"></div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="wizard.js"></script>
+  <script src="voice.js"></script>
+  <script>
+    // --- App router: wizard or voice based on localStorage ---
+    function hasConfig() {
+      return localStorage.getItem('voicekit_config') && localStorage.getItem('voicekit_keys')
+    }
+
+    function showVoice() {
+      document.getElementById('wizard-view').classList.remove('active')
+      document.getElementById('voice-view').classList.add('active')
+      initVoice()
+    }
+
+    function showWizard() {
+      // Tear down voice if active
+      if (typeof destroyVoice === 'function') destroyVoice()
+      document.getElementById('voice-view').classList.remove('active')
+      document.getElementById('wizard-view').classList.add('active')
+      goStep(0)
+    }
+
+    // Override wizard's saveConfig → save and transition to voice
+    function saveAndLaunch() {
+      saveConfig()
+      showVoice()
+    }
+
+    // Boot
+    if (hasConfig()) {
+      showVoice()
+    } else {
+      showWizard()
+    }
+  </script>
+</body>
+</html>
