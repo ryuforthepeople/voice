@@ -14,6 +14,7 @@ header {
 }
 header h1 { font-size: 2rem; color: #fff; }
 header p { color: #8892b0; margin-top: .4rem; font-size: 1.05rem; }
+.last-checked { font-size: .8rem !important; color: #5a6580 !important; margin-top: .2rem !important; }
 
 .controls {
   max-width: 1200px;
@@ -156,6 +157,33 @@ header p { color: #8892b0; margin-top: .4rem; font-size: 1.05rem; }
   font-size: .7rem;
   color: #5a6580;
 }
+
+.grade-filters { display: flex; gap: .4rem; }
+.grade-btn {
+  padding: .45rem .7rem; border-radius: 6px; border: 1px solid rgba(255,255,255,0.15);
+  background: transparent; color: #8892b0; cursor: pointer; font-size: .8rem; transition: all .2s;
+}
+.grade-btn.active { background: rgba(100,255,218,0.15); color: #64ffda; border-color: #64ffda; }
+
+#sortBy {
+  padding: .5rem .7rem; border-radius: 6px; border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.06); color: #e0e0e0; font-size: .85rem; cursor: pointer;
+}
+
+.card-top { display: flex; justify-content: space-between; align-items: center; gap: .5rem; }
+
+.grade-badge {
+  font-size: .7rem; padding: .15rem .45rem; border-radius: 4px; font-weight: 700;
+  white-space: nowrap; flex-shrink: 0;
+}
+.grade-Aplus { background: rgba(255,215,0,0.15); color: #ffd700; }
+.grade-A { background: rgba(72,187,120,0.15); color: #68d391; }
+.grade-B { background: rgba(66,153,225,0.15); color: #63b3ed; }
+.grade-C { background: rgba(236,201,75,0.15); color: #ecc94b; }
+.grade-D { background: rgba(237,137,54,0.15); color: #ed8936; }
+.grade-F { background: rgba(245,101,101,0.15); color: #fc8181; }
+
+.score-tag { font-size: .65rem; color: #5a6580; margin-left: auto; }
 
 .no-results {
   grid-column: 1/-1;

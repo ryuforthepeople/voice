@@ -10,6 +10,7 @@
   <header>
     <h1>🌐 Free API Catalog</h1>
     <p>500 free public APIs for building applications</p>
+    <p class="last-checked" id="lastChecked"></p>
   </header>
   <div class="controls">
     <input id="search" type="text" placeholder="Search APIs by name or description…">
@@ -19,6 +20,21 @@
       <button class="auth-btn" data-auth="apikey">API Key</button>
       <button class="auth-btn" data-auth="oauth">OAuth</button>
     </div>
+    <div class="grade-filters">
+      <button class="grade-btn active" data-grade="all">All Grades</button>
+      <button class="grade-btn" data-grade="A+">⭐ A+</button>
+      <button class="grade-btn" data-grade="A">🟢 A+/A</button>
+      <button class="grade-btn" data-grade="B">🔵 B+</button>
+      <button class="grade-btn" data-grade="C">🟡 C+</button>
+      <button class="grade-btn" data-grade="D">🟠 D+</button>
+      <button class="grade-btn" data-grade="F">🔴 F</button>
+    </div>
+    <select id="sortBy">
+      <option value="id">Sort: Default</option>
+      <option value="score-desc">Sort: Score ↓</option>
+      <option value="score-asc">Sort: Score ↑</option>
+      <option value="name">Sort: Name A-Z</option>
+    </select>
     <span id="count"></span>
   </div>
   <div class="layout">
@@ -26,6 +42,7 @@
     <main class="grid"></main>
   </div>
   <script src="data.js"></script>
+  <script src="health-data.js"></script>
   <script src="catalog.js"></script>
 </body>
 </html>
