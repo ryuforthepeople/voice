@@ -9,7 +9,8 @@ const API_CATALOG = [
     "category": "Weather & Climate",
     "categoryEmoji": "🌦️",
     "score": 95,
-    "grade": "A+"
+    "grade": "A+",
+    "exampleEndpoint": "https://api.open-meteo.com/v1/forecast?latitude=52.37&longitude=4.89&current_weather=true"
   },
   {
     "id": 2,
@@ -273,7 +274,8 @@ const API_CATALOG = [
     "category": "News & Media",
     "categoryEmoji": "📰",
     "score": 90,
-    "grade": "A+"
+    "grade": "A+",
+    "exampleEndpoint": "https://hacker-news.firebaseio.com/v0/topstories.json?limitToFirst=5&orderBy=%22$key%22"
   },
   {
     "id": 24,
@@ -489,7 +491,8 @@ const API_CATALOG = [
     "category": "Finance & Crypto",
     "categoryEmoji": "💰",
     "score": 70,
-    "grade": "B"
+    "grade": "B",
+    "exampleEndpoint": "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd"
   },
   {
     "id": 42,
@@ -537,7 +540,8 @@ const API_CATALOG = [
     "category": "Finance & Crypto",
     "categoryEmoji": "💰",
     "score": 100,
-    "grade": "A+"
+    "grade": "A+",
+    "exampleEndpoint": "https://api.coinlore.net/api/tickers/?start=0&limit=5"
   },
   {
     "id": 46,
@@ -561,7 +565,8 @@ const API_CATALOG = [
     "category": "Finance & Crypto",
     "categoryEmoji": "💰",
     "score": 95,
-    "grade": "A+"
+    "grade": "A+",
+    "exampleEndpoint": "https://api.frankfurter.app/latest?from=EUR&to=USD"
   },
   {
     "id": 48,
@@ -1209,7 +1214,8 @@ const API_CATALOG = [
     "category": "Music & Audio",
     "categoryEmoji": "🎵",
     "score": 100,
-    "grade": "A+"
+    "grade": "A+",
+    "exampleEndpoint": "https://de1.api.radio-browser.info/json/stations/topvote?limit=5"
   },
   {
     "id": 102,
@@ -1461,7 +1467,9 @@ const API_CATALOG = [
     "category": "Movies, TV & Entertainment",
     "categoryEmoji": "🎬",
     "score": 100,
-    "grade": "A+"
+    "grade": "A+",
+    "exampleEndpoint": "https://icanhazdadjoke.com/",
+    "exampleHeaders": {"Accept": "application/json"}
   },
   {
     "id": 123,
@@ -2937,7 +2945,8 @@ const API_CATALOG = [
     "category": "Geography & Maps",
     "categoryEmoji": "🗺️",
     "score": 100,
-    "grade": "A+"
+    "grade": "A+",
+    "exampleEndpoint": "https://ipwhois.app/json/"
   },
   {
     "id": 246,
@@ -3189,7 +3198,8 @@ const API_CATALOG = [
     "category": "Education & Reference",
     "categoryEmoji": "🎓",
     "score": 100,
-    "grade": "A+"
+    "grade": "A+",
+    "exampleEndpoint": "https://en.wikipedia.org/api/rest_v1/page/summary/JavaScript"
   },
   {
     "id": 267,
@@ -3369,7 +3379,8 @@ const API_CATALOG = [
     "category": "Education & Reference",
     "categoryEmoji": "🎓",
     "score": 100,
-    "grade": "A+"
+    "grade": "A+",
+    "exampleEndpoint": "https://uselessfacts.jsph.pl/api/v2/facts/random"
   },
   {
     "id": 282,
