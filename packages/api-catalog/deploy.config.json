@@ -1,6 +1,0 @@
-{
-  "name": "free-api-catalog",
-  "provider": "cloudflare",
-  "source": "directory",
-  "path": "public"
-}
