@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VoiceKit Setup Wizard</title>
+  <link rel="stylesheet" href="wizard.css">
+</head>
+<body>
+  <h1>🧙 VoiceKit Setup</h1>
+  <p class="subtitle">Configure your voice pipeline in 4 steps</p>
+
+  <!-- Stepper -->
+  <div class="stepper" id="stepper">
+    <div class="step-item active" data-step="0">
+      <div class="step-num">1</div><span class="step-label">Ears</span>
+    </div><div class="step-line"></div>
+    <div class="step-item" data-step="1">
+      <div class="step-num">2</div><span class="step-label">Brain</span>
+    </div><div class="step-line"></div>
+    <div class="step-item" data-step="2">
+      <div class="step-num">3</div><span class="step-label">Voice</span>
+    </div><div class="step-line"></div>
+    <div class="step-item" data-step="3">
+      <div class="step-num">4</div><span class="step-label">Test</span>
+    </div>
+  </div>
+
+  <!-- Step 1: STT -->
+  <div class="wizard-panel active" id="panel-0">
+    <h2 class="panel-title">👂 Step 1: Ears (Speech-to-Text)</h2>
+    <p class="panel-desc">Choose how your app converts speech to text</p>
+
+    <div class="cards" id="stt-cards">
+      <div class="card selected" data-provider="deepgram">
+        <div class="card-icon">🎙️</div>
+        <div class="card-name">Deepgram</div>
+        <div class="card-meta">Nova-2 model, fast & accurate</div>
+        <div class="card-badge">Recommended</div>
+      </div>
+      <div class="card" data-provider="google">
+        <div class="card-icon">🔤</div>
+        <div class="card-name">Google Speech</div>
+        <div class="card-meta">Wide language support</div>
+      </div>
+      <div class="card" data-provider="azure">
+        <div class="card-icon">☁️</div>
+        <div class="card-name">Azure Speech</div>
+        <div class="card-meta">Enterprise grade</div>
+      </div>
+      <div class="card" data-provider="whisper">
+        <div class="card-icon">🏠</div>
+        <div class="card-name">Whisper</div>
+        <div class="card-meta">Local, free, slower</div>
+        <div class="card-badge free">Free</div>
+      </div>
+    </div>
+
+    <div id="stt-config">
+      <div class="field">
+        <label>API Key</label>
+        <div class="field-row">
+          <input type="password" id="stt-key" placeholder="Enter API key...">
+          <button class="btn btn-secondary btn-sm" onclick="verifyKey('stt')">Verify</button>
+        </div>
+        <div class="verify-status" id="stt-verify"></div>
+      </div>
+      <div class="field">
+        <label>Language</label>
+        <select id="stt-lang">
+          <option value="multi">Auto-detect (multilingual)</option>
+          <option value="nl">Dutch</option>
+          <option value="en">English</option>
+          <option value="de">German</option>
+          <option value="fr">French</option>
+          <option value="es">Spanish</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="nav-row">
+      <div></div>
+      <button class="btn btn-primary" onclick="goStep(1)">Next → Brain</button>
+    </div>
+  </div>
+
+  <!-- Step 2: LLM -->
+  <div class="wizard-panel" id="panel-1">
+    <h2 class="panel-title">🧠 Step 2: Brain (LLM)</h2>
+    <p class="panel-desc">Choose the AI that processes and responds</p>
+
+    <div class="cards" id="llm-cards">
+      <div class="card selected" data-provider="claude">
+        <div class="card-icon">🟣</div>
+        <div class="card-name">Claude</div>
+        <div class="card-meta">Anthropic, nuanced & safe</div>
+        <div class="card-badge">Recommended</div>
+      </div>
+      <div class="card" data-provider="gpt">
+        <div class="card-icon">🟢</div>
+        <div class="card-name">GPT</div>
+        <div class="card-meta">OpenAI, versatile</div>
+      </div>
+      <div class="card" data-provider="gemini">
+        <div class="card-icon">🔵</div>
+        <div class="card-name">Gemini</div>
+        <div class="card-meta">Google, multimodal</div>
+      </div>
+      <div class="card" data-provider="ollama">
+        <div class="card-icon">🏠</div>
+        <div class="card-name">Ollama</div>
+        <div class="card-meta">Local, private, free</div>
+        <div class="card-badge free">Free</div>
+      </div>
+    </div>
+
+    <div id="llm-config">
+      <div class="field" id="llm-key-field">
+        <label>API Key</label>
+        <div class="field-row">
+          <input type="password" id="llm-key" placeholder="Enter API key...">
+          <button class="btn btn-secondary btn-sm" onclick="verifyKey('llm')">Verify</button>
+        </div>
+        <div class="verify-status" id="llm-verify"></div>
+      </div>
+      <div class="field">
+        <label>Model</label>
+        <select id="llm-model"></select>
+      </div>
+      <div class="field">
+        <label>Response Language</label>
+        <select id="llm-lang">
+          <option value="nl-NL">Dutch</option>
+          <option value="en-US">English</option>
+          <option value="de-DE">German</option>
+          <option value="fr-FR">French</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>System Prompt (optional)</label>
+        <textarea id="llm-prompt" placeholder="e.g. You are a helpful Dutch assistant..."></textarea>
+      </div>
+    </div>
+
+    <div class="nav-row">
+      <button class="btn btn-secondary" onclick="goStep(0)">← Back</button>
+      <button class="btn btn-primary" onclick="goStep(2)">Next → Voice</button>
+    </div>
+  </div>
+
+  <!-- Step 3: TTS -->
+  <div class="wizard-panel" id="panel-2">
+    <h2 class="panel-title">🔊 Step 3: Voice (Text-to-Speech)</h2>
+    <p class="panel-desc">Choose how responses are spoken</p>
+
+    <div class="toggle-row">
+      <div class="toggle on" id="tts-toggle" onclick="toggleTTS()"></div>
+      <span>Enable voice output</span>
+    </div>
+
+    <div id="tts-section">
+      <div class="cards" id="tts-cards">
+        <div class="card selected" data-provider="edge">
+          <div class="card-icon">🆓</div>
+          <div class="card-name">Edge TTS</div>
+          <div class="card-meta">Microsoft, good quality</div>
+          <div class="card-badge free">Free</div>
+        </div>
+        <div class="card" data-provider="elevenlabs">
+          <div class="card-icon">🎭</div>
+          <div class="card-name">ElevenLabs</div>
+          <div class="card-meta">Best quality, natural</div>
+          <div class="card-badge">Best Quality</div>
+        </div>
+        <div class="card" data-provider="openai-tts">
+          <div class="card-icon">🔈</div>
+          <div class="card-name">OpenAI TTS</div>
+          <div class="card-meta">Good quality, affordable</div>
+        </div>
+      </div>
+
+      <div class="field" id="tts-key-field" style="display:none">
+        <label>API Key</label>
+        <div class="field-row">
+          <input type="password" id="tts-key" placeholder="Enter API key...">
+          <button class="btn btn-secondary btn-sm" onclick="verifyKey('tts')">Verify</button>
+        </div>
+        <div class="verify-status" id="tts-verify"></div>
+      </div>
+
+      <div class="field">
+        <label>Voice</label>
+        <div class="voice-list" id="voice-list"></div>
+      </div>
+
+      <div class="field">
+        <label>Speed: <span id="speed-val">1.0</span>x</label>
+        <input type="range" id="tts-speed" min="0.5" max="2.0" step="0.1" value="1.0" oninput="document.getElementById('speed-val').textContent=this.value">
+      </div>
+    </div>
+
+    <div class="nav-row">
+      <button class="btn btn-secondary" onclick="goStep(1)">← Back</button>
+      <button class="btn btn-primary" onclick="goStep(3)">Next → Test</button>
+    </div>
+  </div>
+
+  <!-- Step 4: Test & Save -->
+  <div class="wizard-panel" id="panel-3">
+    <h2 class="panel-title">✅ Step 4: Test & Save</h2>
+    <p class="panel-desc">Review your configuration and save</p>
+
+    <div class="summary-section">
+      <h3>👂 Speech-to-Text</h3>
+      <div class="summary-row"><span class="label">Provider</span><span id="sum-stt-provider">—</span></div>
+      <div class="summary-row"><span class="label">Language</span><span id="sum-stt-lang">—</span></div>
+    </div>
+
+    <div class="summary-section">
+      <h3>🧠 LLM</h3>
+      <div class="summary-row"><span class="label">Provider</span><span id="sum-llm-provider">—</span></div>
+      <div class="summary-row"><span class="label">Model</span><span id="sum-llm-model">—</span></div>
+      <div class="summary-row"><span class="label">Language</span><span id="sum-llm-lang">—</span></div>
+    </div>
+
+    <div class="summary-section">
+      <h3>🔊 Text-to-Speech</h3>
+      <div class="summary-row"><span class="label">Enabled</span><span id="sum-tts-enabled">—</span></div>
+      <div class="summary-row"><span class="label">Provider</span><span id="sum-tts-provider">—</span></div>
+      <div class="summary-row"><span class="label">Voice</span><span id="sum-tts-voice">—</span></div>
+      <div class="summary-row"><span class="label">Speed</span><span id="sum-tts-speed">—</span></div>
+    </div>
+
+    <div class="cost-estimate">
+      <div style="color:#aaa;font-size:0.85rem;margin-bottom:4px">Estimated cost per minute</div>
+      <div class="amount" id="cost-amount">—</div>
+    </div>
+
+    <div class="test-area">
+      <p style="color:#aaa;margin-bottom:12px">Test your setup (requires mic access)</p>
+      <button class="mic-btn" id="test-mic" onclick="toggleTest()">🎤</button>
+      <div id="test-output" style="color:#aaa;font-size:0.85rem;margin-top:8px"></div>
+    </div>
+
+    <div class="nav-row">
+      <button class="btn btn-secondary" onclick="goStep(2)">← Back</button>
+      <button class="btn btn-success" onclick="saveConfig()">💾 Save Configuration</button>
+    </div>
+
+    <div class="save-result" id="save-result">
+      ✅ Configuration saved to localStorage! You can now use it with VoiceKit.
+    </div>
+  </div>
+
+  <script src="wizard.js"></script>
+</body>
+</html>
