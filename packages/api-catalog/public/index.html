@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🌐 Free API Catalog — 500 Public APIs</title>
+  <link rel="stylesheet" href="catalog.css">
+</head>
+<body>
+  <header>
+    <h1>🌐 Free API Catalog</h1>
+    <p>500 free public APIs for building applications</p>
+  </header>
+  <div class="controls">
+    <input id="search" type="text" placeholder="Search APIs by name or description…">
+    <div class="auth-filters">
+      <button class="auth-btn active" data-auth="all">All</button>
+      <button class="auth-btn" data-auth="none">No Auth</button>
+      <button class="auth-btn" data-auth="apikey">API Key</button>
+      <button class="auth-btn" data-auth="oauth">OAuth</button>
+    </div>
+    <span id="count"></span>
+  </div>
+  <div class="layout">
+    <nav class="sidebar"></nav>
+    <main class="grid"></main>
+  </div>
+  <script src="data.js"></script>
+  <script src="catalog.js"></script>
+</body>
+</html>

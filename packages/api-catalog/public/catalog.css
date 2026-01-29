@@ -1,0 +1,180 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  color: #e0e0e0;
+  min-height: 100vh;
+}
+
+header {
+  text-align: center;
+  padding: 2.5rem 1rem 1.5rem;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+header h1 { font-size: 2rem; color: #fff; }
+header p { color: #8892b0; margin-top: .4rem; font-size: 1.05rem; }
+
+.controls {
+  max-width: 1200px;
+  margin: 1.5rem auto;
+  padding: 0 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: .75rem;
+  align-items: center;
+}
+
+#search {
+  flex: 1 1 260px;
+  padding: .6rem 1rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.06);
+  color: #fff;
+  font-size: .95rem;
+  outline: none;
+  transition: border-color .2s;
+}
+#search:focus { border-color: #64ffda; }
+#search::placeholder { color: #5a6580; }
+
+.auth-filters {
+  display: flex;
+  gap: .4rem;
+}
+.auth-btn {
+  padding: .45rem .9rem;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: transparent;
+  color: #8892b0;
+  cursor: pointer;
+  font-size: .85rem;
+  transition: all .2s;
+}
+.auth-btn.active { background: rgba(100,255,218,0.15); color: #64ffda; border-color: #64ffda; }
+
+#count {
+  color: #8892b0;
+  font-size: .9rem;
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.layout {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem;
+  display: flex;
+  gap: 1rem;
+}
+
+.sidebar {
+  flex: 0 0 220px;
+  display: flex;
+  flex-direction: column;
+  gap: .3rem;
+  position: sticky;
+  top: 1rem;
+  align-self: flex-start;
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+}
+
+.cat-btn {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .45rem .7rem;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: #8892b0;
+  cursor: pointer;
+  font-size: .82rem;
+  text-align: left;
+  transition: all .15s;
+  white-space: nowrap;
+}
+.cat-btn:hover { background: rgba(255,255,255,0.06); color: #ccd6f6; }
+.cat-btn.active { background: rgba(100,255,218,0.12); color: #64ffda; }
+.cat-btn .emoji { font-size: 1rem; }
+.cat-btn .cnt { margin-left: auto; font-size: .75rem; opacity: .6; }
+
+.grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: .75rem;
+  align-content: start;
+}
+
+.card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  padding: 1rem 1.1rem;
+  cursor: pointer;
+  transition: all .2s;
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  gap: .4rem;
+}
+.card:hover {
+  border-color: rgba(100,255,218,0.3);
+  box-shadow: 0 0 20px rgba(100,255,218,0.07);
+  transform: translateY(-2px);
+}
+
+.card-name { font-size: 1rem; font-weight: 600; color: #ccd6f6; }
+.card-desc { font-size: .83rem; color: #8892b0; line-height: 1.4; flex: 1; }
+
+.card-meta {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  flex-wrap: wrap;
+  margin-top: .3rem;
+}
+
+.badge {
+  font-size: .7rem;
+  padding: .2rem .5rem;
+  border-radius: 4px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+}
+.badge-none { background: rgba(72,187,120,0.15); color: #68d391; }
+.badge-apikey { background: rgba(236,201,75,0.15); color: #ecc94b; }
+.badge-oauth { background: rgba(237,137,54,0.15); color: #ed8936; }
+
+.cat-tag {
+  font-size: .7rem;
+  color: #5a6580;
+}
+
+.no-results {
+  grid-column: 1/-1;
+  text-align: center;
+  padding: 3rem;
+  color: #5a6580;
+  font-size: 1.1rem;
+}
+
+@media (max-width: 768px) {
+  .layout { flex-direction: column; }
+  .sidebar {
+    flex: none;
+    flex-direction: row;
+    flex-wrap: wrap;
+    position: static;
+    max-height: none;
+  }
+  .cat-btn { font-size: .75rem; padding: .35rem .55rem; }
+  .grid { grid-template-columns: 1fr; }
+  #count { margin-left: 0; }
+}
