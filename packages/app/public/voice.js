@@ -92,6 +92,7 @@ function handleMessage(msg) {
 }
 
 function updateState(state) {
+  if (!stateDot || !stateText) return
   stateDot.className = `state-dot ${state}`
   const names = { idle: 'Idle', listening: 'Listening...', processing: 'Thinking...', speaking: 'Speaking...', interrupted: 'Interrupted' }
   stateText.textContent = names[state] || state
@@ -263,6 +264,7 @@ function showError(message) {
 }
 
 function destroyVoice() {
-  stopVoice()
+  // Only cleanup if voice was actually initialized
+  if (voiceBtn) stopVoice()
   if (ws) { ws.onclose = null; ws.close(); ws = null }
 }
