@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Radio Browser Demo — Internet Radio Player</title>
+  <link rel="stylesheet" href="demo.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="header">
+  <h1>🎵 Radio Browser Demo — 30,000+ Internet Radio Stations</h1>
+  <p>Powered by Radio Browser API — Free, no authentication required</p>
+  <span class="badge">LIVE API DEMO</span>
+</div>
+
+<div class="controls">
+  <div class="search-box">
+    <input type="text" id="search" placeholder="Search stations by name...">
+  </div>
+  <div class="country-select">
+    <select id="country"><option value="">Loading...</option></select>
+  </div>
+</div>
+
+<div class="genres">
+  <button class="genre-pill" data-tag="rock">🎸 Rock</button>
+  <button class="genre-pill" data-tag="jazz">🎷 Jazz</button>
+  <button class="genre-pill" data-tag="classical">🎻 Classical</button>
+  <button class="genre-pill" data-tag="pop">🎤 Pop</button>
+  <button class="genre-pill" data-tag="electronic">🎹 Electronic</button>
+  <button class="genre-pill" data-tag="ambient">🌊 Ambient</button>
+  <button class="genre-pill" data-tag="news">📰 News</button>
+  <button class="genre-pill" data-tag="hiphop">🎧 Hip Hop</button>
+  <button class="genre-pill" data-tag="metal">🤘 Metal</button>
+  <button class="genre-pill" data-tag="country">🤠 Country</button>
+  <button class="genre-pill" data-tag="reggae">🏝️ Reggae</button>
+  <button class="genre-pill" data-tag="blues">🎺 Blues</button>
+</div>
+
+<div id="stations" class="stations">
+  <div class="loading"><div class="spinner"></div><p>Loading stations...</p></div>
+</div>
+
+<div class="how-it-works">
+  <h2>📡 How It Works</h2>
+  <p>This demo uses the <a href="https://www.radio-browser.info" target="_blank">Radio Browser API</a> — a free, open-source database of internet radio stations. No API key or authentication needed. Just fetch and play!</p>
+  
+  <h3 style="color:var(--text);margin:1.5rem 0 .75rem;font-size:1.1rem">Key Endpoints</h3>
+  <div class="endpoint-list">
+    <div class="endpoint-item">
+      <code>/json/stations/topvote?limit=50</code>
+      <div class="desc">Top voted stations worldwide</div>
+    </div>
+    <div class="endpoint-item">
+      <code>/json/stations/search?name=jazz</code>
+      <div class="desc">Search stations by name</div>
+    </div>
+    <div class="endpoint-item">
+      <code>/json/stations/bycountry/Netherlands</code>
+      <div class="desc">Filter by country</div>
+    </div>
+    <div class="endpoint-item">
+      <code>/json/stations/bytag/rock?limit=50</code>
+      <div class="desc">Filter by genre tag</div>
+    </div>
+    <div class="endpoint-item">
+      <code>/json/countries</code>
+      <div class="desc">List all countries</div>
+    </div>
+    <div class="endpoint-item">
+      <code>/json/tags?order=stationcount&amp;reverse=true</code>
+      <div class="desc">Popular tags/genres</div>
+    </div>
+  </div>
+
+  <h3 style="color:var(--text);margin:1.5rem 0 .75rem;font-size:1.1rem">Code Example</h3>
+  <div class="code-block"><span class="cm">// Fetch top voted stations</span>
+<span class="kw">const</span> res = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">'https://de1.api.radio-browser.info/json/stations/topvote?limit=10'</span>);
+<span class="kw">const</span> stations = <span class="kw">await</span> res.<span class="fn">json</span>();
+
+<span class="cm">// Play a station with HTML5 Audio</span>
+<span class="kw">const</span> audio = <span class="kw">new</span> <span class="fn">Audio</span>(stations[0].url_resolved);
+audio.<span class="fn">play</span>();
+
+<span class="cm">// Each station object contains:</span>
+<span class="cm">// { name, url_resolved, country, countrycode, tags, codec, bitrate, votes, ... }</span></div>
+
+  <p style="margin-top:1.5rem">
+    <a href="https://de1.api.radio-browser.info/json/stations/topvote?limit=3" target="_blank">🔗 Try the API directly</a> · 
+    <a href="https://www.radio-browser.info/#/api" target="_blank">📖 Full API docs</a> · 
+    <a href="https://github.com/seglerio/radio-browser-api" target="_blank">💻 GitHub</a>
+  </p>
+</div>
+
+<!-- Now Playing Bar -->
+<div id="now-playing" class="now-playing">
+  <span id="np-eq" class="equalizer paused"><span class="bar"></span><span class="bar"></span><span class="bar"></span><span class="bar"></span></span>
+  <div class="info">
+    <div class="title" id="np-title">No station selected</div>
+    <div class="detail" id="np-detail"></div>
+  </div>
+  <button class="np-btn play-pause" id="np-play-pause">▶</button>
+  <button class="np-btn stop" id="np-stop">⏹</button>
+  <input type="range" class="volume-slider" id="volume" min="0" max="1" step="0.05" value="0.7">
+</div>
+
+<script src="demo.js"></script>
+</body>
+</html>
