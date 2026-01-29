@@ -238,22 +238,25 @@ function stopVoice() {
   if (processor) { processor.disconnect(); processor = null }
   if (mediaStream) { mediaStream.getTracks().forEach(t => t.stop()); mediaStream = null }
   volumeSmooth = 0
-  volumeRing.style.transform = 'translate(-50%, -50%) scale(1)'
-  volumeRing.style.borderColor = 'rgba(76, 175, 80, 0)'
-  volumeRing.classList.remove('active')
+  if (volumeRing) {
+    volumeRing.style.transform = 'translate(-50%, -50%) scale(1)'
+    volumeRing.style.borderColor = 'rgba(76, 175, 80, 0)'
+    volumeRing.classList.remove('active')
+  }
   if (micInfo) { micInfo.textContent = '🎤 No microphone selected'; micInfo.style.color = '#666' }
   stopAudio()
   if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'stop' }))
   isActive = false
   audioQueue = []
   currentAssistantMessage = null
-  voiceBtn.classList.remove('active')
-  micIcon.style.display = 'block'
-  stopIcon.style.display = 'none'
-  updateState('idle')
+  if (voiceBtn) { voiceBtn.classList.remove('active') }
+  if (micIcon) { micIcon.style.display = 'block' }
+  if (stopIcon) { stopIcon.style.display = 'none' }
+  if (typeof updateState === 'function') updateState('idle')
 }
 
 function showError(message) {
+  if (!errorToast) return
   errorToast.textContent = message
   errorToast.style.display = 'block'
   setTimeout(() => { errorToast.style.display = 'none' }, 3000)
