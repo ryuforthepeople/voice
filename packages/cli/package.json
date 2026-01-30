@@ -1,5 +1,5 @@
 {
-  "name": "@for-the-people/voice-cli",
+  "name": "@for-the-people-initiative/voice-cli",
   "version": "0.1.0",
   "type": "module",
   "bin": {
@@ -11,7 +11,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@for-the-people/voice-core": "workspace:*",
+    "@for-the-people-initiative/voice-core": "workspace:*",
     "@inquirer/prompts": "^7.0.0",
     "chalk": "^5.0.0",
     "dotenv": "^16.5.0"

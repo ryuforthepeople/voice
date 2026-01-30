@@ -1,5 +1,5 @@
 {
-  "name": "@for-the-people/voice-demo",
+  "name": "@for-the-people-initiative/voice-demo",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -10,7 +10,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@for-the-people/voice-core": "workspace:*",
+    "@for-the-people-initiative/voice-core": "workspace:*",
     "@hono/node-server": "^1.14.2",
     "@hono/node-ws": "^1.1.1",
     "dotenv": "^16.5.0",
